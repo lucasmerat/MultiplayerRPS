@@ -19,5 +19,5 @@
   var playerOneName = 'Lucas';
 
   database.ref('/folder').set({
-      name:playerOneName;
+      name:playerOneName
   })

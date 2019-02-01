@@ -1,3 +1,21 @@
+#start{
+    text-align:center;
+}
+
 h1{
     color:blue;
+}
+
+.hands{
+    width:370px;
+    margin:0 auto;
+    font-size: 40px;
+}
+
+.player-row{
+    text-align: center;
+}
+
+.player-select{
+    font-size:40px;
 }
