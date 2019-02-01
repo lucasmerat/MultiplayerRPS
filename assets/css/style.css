@@ -16,6 +16,16 @@ h1{
     text-align: center;
 }
 
-.player-select{
+.rps-icon{
     font-size:40px;
+    margin-top:20px;
+}
+
+.score-counters{
+    font-size:18px;
+}
+
+.battleground {
+    border: 1px solid black;
+    min-height: 340px;
 }
