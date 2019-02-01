@@ -19,13 +19,19 @@ let connectedPlayers = 0;
 
 function startGame() {
   $(".details").text("Player 1 has connected... Please enter your name");
-    $(".add-name").on("click", updatePlayerOne)
+  $(".add-name").on("click", updatePlayerName)
 }
 
-function updatePlayerOne(){
-    let playerOneName = $(".name-input").val();
-    if(playerOneName !== ""){
-        $("#p1-name").text(playerOneName)
+function updatePlayerName(name){
+    if(connectedPlayers === 1){
+        let playerOneName = $('.name-input').val();
+        $("#p1-name").text(playerOneName);
+        $('.name-input').val('')
+        $(".details").text("Waiting for player 2...")
+    }
+    
+    if (connectedPlayers === 2){
+        $(".details").text("Player 2 has connected... Please enter your name");
     }
 }
 
@@ -67,9 +73,14 @@ connectedRef.on("value", function(snap) {
 connectionsRef.on("value", function(snapshot) {
   // Display the viewer count in the html.
   // The number of online users is the number of children in the connections list.
-  //  $(".details").text(snapshot.numChildren() + " people are connected");
-  connectedPlayers++;
+  connectedPlayers= snapshot.numChildren();
   if (connectedPlayers === 1) {
+      console.log('One player has connected, starting game')
     startGame();
+  }
+
+  if (connectedPlayers === 2){
+      console.log('player 2 connected, updating player 2 stuff')
+      playerTwoJoin();
   }
 });
