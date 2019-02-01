@@ -25,13 +25,19 @@ function startGame() {
 function updatePlayerName(name){
     if(connectedPlayers === 1){
         let playerOneName = $('.name-input').val();
-        $("#p1-name").text(playerOneName);
+        firebasePlayerCall(playerOneName);
         $('.name-input').val('')
         $(".details").text("Waiting for player 2...")
     }
     
     if (connectedPlayers === 2){
         $(".details").text("Player 2 has connected... Please enter your name");
+        $(".add-name").on("click", function(){
+            let playerTwoName = $('.name-input').val();
+            $("#p2-name").text(playerTwoName);
+            $('.name-input').val('')
+        })
+
     }
 }
 
@@ -48,8 +54,18 @@ firebase.initializeApp(config);
 
 var database = firebase.database();
 
+function firebasePlayerCall(name){
+
+database.ref("/players/").set({
+    playerOneName: name
+})
+
+}
+
 database.ref("/players/").on("value", function(snapshot) {
   // Print the initial data to the console.
+  $("#p1-name").text(snapshot.val().playerOneName);
+
   console.log(snapshot.val());
 });
 
@@ -81,6 +97,6 @@ connectionsRef.on("value", function(snapshot) {
 
   if (connectedPlayers === 2){
       console.log('player 2 connected, updating player 2 stuff')
-      playerTwoJoin();
+      updatePlayerName();
   }
 });
