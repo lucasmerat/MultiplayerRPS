@@ -48,7 +48,7 @@ function resetGameData(){
     })
 }
 
-resetGameData();
+
 
   //Setting up connetions ref
 var connectionsRef = database.ref("/connections");
@@ -78,23 +78,27 @@ connectionsRef.on("value", function(snapshot) {
   connectedPlayers = snapshot.numChildren();
 //If we have one person conneted, display that to users and add click listener on start button
   if (connectedPlayers === 1) {
+    resetGameData();//For when game is reset to 1 player, data reloads
     console.log("One player has connected, starting game");
     $(".details").text("Player 1 has connected... Please enter your name");
     $(".add-name").on("click", updatePlayerName);
   }
 
   if (connectedPlayers === 2) {
+    database.ref("/players/playeronename").once('value').then(function(snap){
+        console.log(snap.val().name)
+        $("#p1-name").text(snapshot.val().name);
+        })
     $(".details").text("Player 2 has connected... Please enter your name");
     $(".add-name").on("click", updatePlayerName);
   }
 });
 
-function updatePlayerName(name) {
+function updatePlayerName() {
   //If first player has connected, run script to have player 1 choose a name
   if (connectedPlayers === 1) {
     playerOneName = $(".name-input").val();
-    console.log(playerOneName)
-    firebasePlayerCall(playerOneName);
+    firebasePlayerAdd(playerOneName);
     $(".name-input").val("");
     $(".add-name").off();
     $(".details").text("Waiting for player 2...");
@@ -103,7 +107,7 @@ function updatePlayerName(name) {
   if (connectedPlayers === 2) {
     console.log("Player two add button clicked");
     playerTwoName = $(".name-input").val();
-    firebasePlayerCall(playerTwoName);
+    firebasePlayerAdd(playerTwoName);
     $(".name-input").val("");
     $(".add-name").off();
     progressMove()
@@ -111,7 +115,7 @@ function updatePlayerName(name) {
 }
 
 //Function to update P1 and P2 name in database
-function firebasePlayerCall(name) {
+function firebasePlayerAdd(name) {
     if (connectedPlayers === 1) {
       database.ref("/players/playeronename").set({
         playerOneName: name
@@ -120,7 +124,6 @@ function firebasePlayerCall(name) {
       database.ref("/players/playertwoname").set({
         playerTwoName: name
       });
-    console.log(name)   
  }
   }
 
@@ -132,9 +135,9 @@ function progressMove(){
     database.ref("/moves/").set({
         move
       });
-    console.log(move)
 }
 
+//Listener for when move variable changes
 database.ref("/moves/").on("value", function(snap){
     console.log(snap.val())
     if(snap.val().move === 1){
@@ -155,9 +158,6 @@ function playerTwoThrow(move){
     console.log('Move is now ' + move + ' player one is going to throw')
 
 }
-
-
-
 
 //When there is a change in P1 or P2 nodes, update that on HTML -- need to fix this so that it does not auto
 database.ref("/players/playeronename").on("value", function(snapshot) {
