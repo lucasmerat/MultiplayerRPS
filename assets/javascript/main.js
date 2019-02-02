@@ -16,69 +16,47 @@
 
 //Global Variables
 let connectedPlayers = 0;
-
-function updatePlayerName(name) {
-  //If first player has connected, run script to have player 1 choose a name
-  if (connectedPlayers === 1) {
-    let playerOneName = $(".name-input").val();
-    firebasePlayerCall(playerOneName);
-    $(".name-input").val("");
-    $(".add-name").off();
-    $(".details").text("Waiting for player 2...");
-  }
-  //If second player connected,
-  if (connectedPlayers === 2) {
-    console.log("Player two add button clicked");
-    let playerTwoName = $(".name-input").val();
-    firebasePlayerCall(playerTwoName);
-    $(".name-input").val("");
-    $(".add-name").off();
-  }
-}
+let playerOneName;
+let playerTwoName;
+let move = 0;
 
 //Firebase config
 var config = {
-  apiKey: "AIzaSyAkKIGuNWl7S3MPGZ1YoRqrzI338vidvB8",
-  authDomain: "multiplayerrps-4204d.firebaseapp.com",
-  databaseURL: "https://multiplayerrps-4204d.firebaseio.com",
-  projectId: "multiplayerrps-4204d",
-  storageBucket: "multiplayerrps-4204d.appspot.com",
-  messagingSenderId: "967846374460"
-};
-firebase.initializeApp(config);
+    apiKey: "AIzaSyAkKIGuNWl7S3MPGZ1YoRqrzI338vidvB8",
+    authDomain: "multiplayerrps-4204d.firebaseapp.com",
+    databaseURL: "https://multiplayerrps-4204d.firebaseio.com",
+    projectId: "multiplayerrps-4204d",
+    storageBucket: "multiplayerrps-4204d.appspot.com",
+    messagingSenderId: "967846374460"
+  };
+  firebase.initializeApp(config);
+  
+  var database = firebase.database();
 
-var database = firebase.database();
 
-//Function to update P1 and P2 name in database
-function firebasePlayerCall(name) {
-  if (connectedPlayers === 1) {
-    database.ref("/players/playeronename").set({
-      playerOneName: name
-    });
-  } else {
-    database.ref("/players/playertwoname").set({
-      playerTwoName: name
-    });
-  }
+function resetGameData(){
+    $("#p1-name").text("Player 1")
+    $("#p2-name").text("Player 2")
+    database.ref("/moves/").set({
+        move: 0
+    })
+    database.ref("players/playeronename/").set({
+        name: "Player 1"
+    })
+    database.ref("players/playertwoname/").set({
+        name: "Player 2"
+    })
 }
 
-//When there is a change in P1 or P2 nodes, update that on HTML
-database.ref("/players/playeronename").on("value", function(snapshot) {
-  $("#p1-name").text(snapshot.val().playerOneName);
-});
+resetGameData();
 
-database.ref("/players/playertwoname").on("value", function(snapshot) {
-  // Print the initial data to the console.
-  $("#p2-name").text(snapshot.val().playerTwoName);
-});
-
-
-//Setting up connetions ref
+  //Setting up connetions ref
 var connectionsRef = database.ref("/connections");
 
 //Setting info ref
 var connectedRef = database.ref(".info/connected");
 
+//Listener on changes in number of connections
 connectedRef.on("value", function(snap) {
   console.log(snap.val());
 
@@ -91,10 +69,14 @@ connectedRef.on("value", function(snap) {
   }
 });
 
+
+
+//Listener to if connections ref changes
 connectionsRef.on("value", function(snapshot) {
-  // Display the viewer count in the html.
-  // The number of online users is the number of children in the connections list.
+    console.log(snapshot.val())
+//Update connectedPlayers variable based on number of children in node
   connectedPlayers = snapshot.numChildren();
+//If we have one person conneted, display that to users and add click listener on start button
   if (connectedPlayers === 1) {
     console.log("One player has connected, starting game");
     $(".details").text("Player 1 has connected... Please enter your name");
@@ -106,3 +88,88 @@ connectionsRef.on("value", function(snapshot) {
     $(".add-name").on("click", updatePlayerName);
   }
 });
+
+function updatePlayerName(name) {
+  //If first player has connected, run script to have player 1 choose a name
+  if (connectedPlayers === 1) {
+    playerOneName = $(".name-input").val();
+    console.log(playerOneName)
+    firebasePlayerCall(playerOneName);
+    $(".name-input").val("");
+    $(".add-name").off();
+    $(".details").text("Waiting for player 2...");
+  }
+  //If second player connected,
+  if (connectedPlayers === 2) {
+    console.log("Player two add button clicked");
+    playerTwoName = $(".name-input").val();
+    firebasePlayerCall(playerTwoName);
+    $(".name-input").val("");
+    $(".add-name").off();
+    progressMove()
+  }
+}
+
+//Function to update P1 and P2 name in database
+function firebasePlayerCall(name) {
+    if (connectedPlayers === 1) {
+      database.ref("/players/playeronename").set({
+        playerOneName: name
+      });
+    } else {
+      database.ref("/players/playertwoname").set({
+        playerTwoName: name
+      });
+    console.log(name)   
+ }
+  }
+
+//GAME MECHANICS
+
+//Function to increase move count
+function progressMove(){
+    move++;
+    database.ref("/moves/").set({
+        move
+      });
+    console.log(move)
+}
+
+database.ref("/moves/").on("value", function(snap){
+    console.log(snap.val())
+    if(snap.val().move === 1){
+        playerOneThrow(snap.val().move);
+    }
+    if(snap.val().move === 2){
+        playerTwoThrow(snap.val().move);
+    }
+})
+
+function playerOneThrow(move) {
+    $(".details").text("Player 1, choose your throw");
+    console.log('Move is now ' + move + ' player one is going to throw')
+}
+
+function playerTwoThrow(move){
+    $(".details").text("Player 1 has thrown, player 2, choose your throw");
+    console.log('Move is now ' + move + ' player one is going to throw')
+
+}
+
+
+
+
+//When there is a change in P1 or P2 nodes, update that on HTML -- need to fix this so that it does not auto
+database.ref("/players/playeronename").on("value", function(snapshot) {
+  $("#p1-name").text(snapshot.val().playerOneName);
+});
+
+database.ref("/players/playertwoname").on("value", function(snapshot) {
+  // Print the initial data to the console.
+  $("#p2-name").text(snapshot.val().playerTwoName);
+});
+
+//database.ref("/players/playeronename").once('value').then(function(snap){
+    //console.log(snap.val().name)
+    //$("#p1-name").text(snapshot.val().name);
+    //})
