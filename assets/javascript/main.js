@@ -17,28 +17,23 @@
 //Global Variables
 let connectedPlayers = 0;
 
-function startGame() {
-  $(".details").text("Player 1 has connected... Please enter your name");
-  $(".add-name").on("click", updatePlayerName)
-}
-
-function updatePlayerName(name){
-    if(connectedPlayers === 1){
-        let playerOneName = $('.name-input').val();
-        firebasePlayerCall(playerOneName);
-        $('.name-input').val('')
-        $(".details").text("Waiting for player 2...")
-    }
-    
-    if (connectedPlayers === 2){
-        $(".details").text("Player 2 has connected... Please enter your name");
-        $(".add-name").on("click", function(){
-            let playerTwoName = $('.name-input').val();
-            $("#p2-name").text(playerTwoName);
-            $('.name-input').val('')
-        })
-
-    }
+function updatePlayerName(name) {
+  //If first player has connected, run script to have player 1 choose a name
+  if (connectedPlayers === 1) {
+    let playerOneName = $(".name-input").val();
+    firebasePlayerCall(playerOneName);
+    $(".name-input").val("");
+    $(".add-name").off();
+    $(".details").text("Waiting for player 2...");
+  }
+  //If second player connected,
+  if (connectedPlayers === 2) {
+    console.log("Player two add button clicked");
+    let playerTwoName = $(".name-input").val();
+    firebasePlayerCall(playerTwoName);
+    $(".name-input").val("");
+    $(".add-name").off();
+  }
 }
 
 //Firebase config
@@ -54,24 +49,34 @@ firebase.initializeApp(config);
 
 var database = firebase.database();
 
-function firebasePlayerCall(name){
-
-database.ref("/players/").set({
-    playerOneName: name
-})
-
+//Function to update P1 and P2 name in database
+function firebasePlayerCall(name) {
+  if (connectedPlayers === 1) {
+    database.ref("/players/playeronename").set({
+      playerOneName: name
+    });
+  } else {
+    database.ref("/players/playertwoname").set({
+      playerTwoName: name
+    });
+  }
 }
 
-database.ref("/players/").on("value", function(snapshot) {
-  // Print the initial data to the console.
+//When there is a change in P1 or P2 nodes, update that on HTML
+database.ref("/players/playeronename").on("value", function(snapshot) {
   $("#p1-name").text(snapshot.val().playerOneName);
-
-  console.log(snapshot.val());
 });
 
-var connectionsRef = database.ref("/connections");
-console.log(connectionsRef);
+database.ref("/players/playertwoname").on("value", function(snapshot) {
+  // Print the initial data to the console.
+  $("#p2-name").text(snapshot.val().playerTwoName);
+});
 
+
+//Setting up connetions ref
+var connectionsRef = database.ref("/connections");
+
+//Setting info ref
 var connectedRef = database.ref(".info/connected");
 
 connectedRef.on("value", function(snap) {
@@ -89,14 +94,15 @@ connectedRef.on("value", function(snap) {
 connectionsRef.on("value", function(snapshot) {
   // Display the viewer count in the html.
   // The number of online users is the number of children in the connections list.
-  connectedPlayers= snapshot.numChildren();
+  connectedPlayers = snapshot.numChildren();
   if (connectedPlayers === 1) {
-      console.log('One player has connected, starting game')
-    startGame();
+    console.log("One player has connected, starting game");
+    $(".details").text("Player 1 has connected... Please enter your name");
+    $(".add-name").on("click", updatePlayerName);
   }
 
-  if (connectedPlayers === 2){
-      console.log('player 2 connected, updating player 2 stuff')
-      updatePlayerName();
+  if (connectedPlayers === 2) {
+    $(".details").text("Player 2 has connected... Please enter your name");
+    $(".add-name").on("click", updatePlayerName);
   }
 });
