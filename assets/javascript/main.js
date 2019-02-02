@@ -132,6 +132,7 @@ function firebasePlayerAdd(name) {
 //Function to increase move count
 function progressMove(){
     move++;
+    console.log(move)
     database.ref("/moves/").set({
         move
       });
@@ -149,13 +150,36 @@ database.ref("/moves/").on("value", function(snap){
 })
 
 function playerOneThrow(move) {
-    $(".details").text("Player 1, choose your throw");
     console.log('Move is now ' + move + ' player one is going to throw')
+    $(".details").text("Player 1, choose your throw");
+    $(".p1-hands").on("click", playerOneChooseHand)
+}
+
+function playerOneChooseHand(){
+    console.log('Player 1 hand clicked')
+    let p1Throw = $(this).attr("data-value");
+    progressMove();
+    evaluateMatch(p1Throw);
 }
 
 function playerTwoThrow(move){
     $(".details").text("Player 1 has thrown, player 2, choose your throw");
-    console.log('Move is now ' + move + ' player one is going to throw')
+    console.log('Move is now ' + move + ' player two is going to throw')
+    $(".p2-hands").on("click", playerTwoChooseHand)
+}
+
+function playerTwoChooseHand(){
+    console.log('Player 2 hand clicked')
+    let p2Throw = $(this).attr("data-value");
+    console.log(p2Throw)
+    evaluateMatch(p1Throw);
+}
+
+function evaluateMatch(p1Throw,p2Throw){
+    let first = p1Throw;
+    let second = p2Throw;
+    console.log(first)
+    console.log(second)
 
 }
 
