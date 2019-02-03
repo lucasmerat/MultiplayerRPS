@@ -135,6 +135,9 @@ function progressMoveFirst(){
 function progressMoveSecond(){
     database.ref("/moves").child("/move").set(2)
 }
+function progressMoveThird(){
+    database.ref("/moves").child("/move").set(3)
+}
 
 //Listener for when move variable changes
 database.ref("/moves").on("value", function(snap){
@@ -154,9 +157,10 @@ function playerOneThrow(move) {
 
 function playerOneChooseHand(){
     console.log('Player 1 hand clicked')
-    let p1Throw = $(this).attr("data-value");
+    let hand = $(this).attr("data-value");
+    console.log('Player 1 chose' + hand)
     progressMoveSecond();
-    evaluateMatch(p1Throw);
+    evaluateMatch(hand);
 }
 
 function playerTwoThrow(move){
@@ -166,18 +170,22 @@ function playerTwoThrow(move){
 }
 
 function playerTwoChooseHand(){
+    progressMoveThird();
     console.log('Player 2 hand clicked')
-    let p2Throw = $(this).attr("data-value");
-    console.log(p2Throw)
-    evaluateMatch(p2Throw);
+    let hand = $(this).attr("data-value");
+    console.log('player 2 chose' + hand)
+    evaluateMatch(hand);
 }
 
-function evaluateMatch(p1Throw,p2Throw){
-    let first = p1Throw;
-    let second = p2Throw;
-    console.log(first)
-    console.log(second)
-
+function evaluateMatch(hand){
+    database.ref("/moves/move").once('value').then(function(snap){
+    console.log(snap.val())
+    if(snap.val() === 2){
+    database.ref("/throws").child("/p1throw").set(hand)
+    } else if (snap.val() === 3){
+    database.ref("/throws").child("/p2throw").set(hand)
+    }
+    })
 }
 
 //When there is a change in P1 or P2 nodes, update that on HTML -- need to fix this so that it does not auto
