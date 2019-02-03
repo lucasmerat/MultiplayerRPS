@@ -46,6 +46,14 @@ function resetGameData() {
     name: "Player 2"
   });
   database.ref("/result").remove()
+  database.ref("/results/").set({
+    ties: 0,
+    p1wins: 0,
+    p1losses: 0,
+    p2wins: 0,
+    p2losses: 0,
+    result: "blank"
+  });
 }
 
 //Setting up connetions ref
@@ -174,7 +182,6 @@ function playerOneThrow(move) {
 }
 
 function playerOneChooseHand() {
-  console.log("Player 1 hand clicked");
   let hand = $(this).attr("data-value");
   console.log("Player 1 chose" + hand);
   progressMoveSecond();
@@ -216,12 +223,8 @@ function evaluateMatch(hand) {
           console.log(snapshot.val().p2throw.throwVal);
             if (snapshot.val().p1throw.throwVal === snapshot.val().p2throw.throwVal){
                 console.log('tie game')
-                database.ref('/result/').set({
-                    gameresult: "tie"
-                })
-                database.ref('/results/').set({
-                    ties: 1
-                })
+                database.ref('/results/').child("/result").set("tie")
+                database.ref('/results/').child("/ties").set(1)
             }
         });
       }
@@ -238,4 +241,8 @@ database.ref('/result').on("child_added",function(resultsnap){
         $(".details").append("<br>The game ended with a " + resultsnap.val());
     });
 
+})
+
+database.ref('/results').on("value",function(snap){
+    console.log(snap.val())
 })
