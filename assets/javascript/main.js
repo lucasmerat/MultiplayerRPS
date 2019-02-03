@@ -45,14 +45,13 @@ function resetGameData() {
   database.ref("players/playertwoname/").set({
     name: "Player 2"
   });
-  database.ref("/result").remove()
+  database.ref("/results/gameresult").remove()
   database.ref("/results/").set({
     ties: 0,
     p1wins: 0,
     p1losses: 0,
     p2wins: 0,
     p2losses: 0,
-    result: "blank"
   });
 }
 
@@ -223,7 +222,7 @@ function evaluateMatch(hand) {
           console.log(snapshot.val().p2throw.throwVal);
             if (snapshot.val().p1throw.throwVal === snapshot.val().p2throw.throwVal){
                 console.log('tie game')
-                database.ref('/results/').child("/result").set("tie")
+                database.ref('/results/gameresult').child("/outcome").set("tie")
                 database.ref('/results/').child("/ties").set(1)
             }
         });
@@ -231,18 +230,23 @@ function evaluateMatch(hand) {
     });
 }
 
-database.ref('/result').on("child_added",function(resultsnap){
-    console.log()
+database.ref('/results/').on("child_changed",function(resultsnap){
     database
       .ref("/throws/")
       .once("value")
       .then(function(throwsnap) {
         $(".details").text("Player 1 chose " + throwsnap.val().p1throw.throwVal + " and player 2 chose " + throwsnap.val().p2throw.throwVal);
-        $(".details").append("<br>The game ended with a " + resultsnap.val());
+        //$(".details").append("<br>The game ended with a " + resultsnap.val().gameresult.outcome);
+        console.log(resultsnap.val())
     });
 
 })
 
 database.ref('/results').on("value",function(snap){
-    console.log(snap.val())
+    console.log(snap.val().p1wins)
+    $("#p1-wins").text(snap.val().p1wins)
+    $("#p2-wins").text(snap.val().p2wins)
+    $("#p1-losses").text(snap.val().p1losses)
+    $("#p2-losses").text(snap.val().p2losses)
+    $(".ties").text(snap.val().ties)
 })
