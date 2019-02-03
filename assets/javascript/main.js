@@ -86,7 +86,6 @@ connectionsRef.on("value", function(snapshot) {
 
   if (connectedPlayers === 2) {
     database.ref("/players/playeronename").once('value').then(function(snap){
-        console.log(snap.val().name)
         $("#p1-name").text(snapshot.val().name);
         })
     $(".details").text("Player 2 has connected... Please enter your name");
@@ -105,12 +104,11 @@ function updatePlayerName() {
   }
   //If second player connected,
   if (connectedPlayers === 2) {
-    console.log("Player two add button clicked");
     playerTwoName = $(".name-input").val();
     firebasePlayerAdd(playerTwoName);
     $(".name-input").val("");
     $(".add-name").off();
-    progressMove()
+    progressMoveFirst()
   }
 }
 
@@ -130,17 +128,17 @@ function firebasePlayerAdd(name) {
 //GAME MECHANICS
 
 //Function to increase move count
-function progressMove(){
-    move++;
-    console.log(move)
-    database.ref("/moves/").set({
-        move
-      });
+function progressMoveFirst(){
+    database.ref("/moves").child("/move").set(1)
+}
+
+function progressMoveSecond(){
+    database.ref("/moves").child("/move").set(2)
 }
 
 //Listener for when move variable changes
-database.ref("/moves/").on("value", function(snap){
-    console.log(snap.val())
+database.ref("/moves").on("value", function(snap){
+    console.log("Move just increased to " + snap.val().move)
     if(snap.val().move === 1){
         playerOneThrow(snap.val().move);
     }
@@ -150,7 +148,6 @@ database.ref("/moves/").on("value", function(snap){
 })
 
 function playerOneThrow(move) {
-    console.log('Move is now ' + move + ' player one is going to throw')
     $(".details").text("Player 1, choose your throw");
     $(".p1-hands").on("click", playerOneChooseHand)
 }
@@ -158,7 +155,7 @@ function playerOneThrow(move) {
 function playerOneChooseHand(){
     console.log('Player 1 hand clicked')
     let p1Throw = $(this).attr("data-value");
-    progressMove();
+    progressMoveSecond();
     evaluateMatch(p1Throw);
 }
 
@@ -172,7 +169,7 @@ function playerTwoChooseHand(){
     console.log('Player 2 hand clicked')
     let p2Throw = $(this).attr("data-value");
     console.log(p2Throw)
-    evaluateMatch(p1Throw);
+    evaluateMatch(p2Throw);
 }
 
 function evaluateMatch(p1Throw,p2Throw){
