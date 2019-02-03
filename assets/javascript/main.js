@@ -22,35 +22,33 @@ let move = 0;
 
 //Firebase config
 var config = {
-    apiKey: "AIzaSyAkKIGuNWl7S3MPGZ1YoRqrzI338vidvB8",
-    authDomain: "multiplayerrps-4204d.firebaseapp.com",
-    databaseURL: "https://multiplayerrps-4204d.firebaseio.com",
-    projectId: "multiplayerrps-4204d",
-    storageBucket: "multiplayerrps-4204d.appspot.com",
-    messagingSenderId: "967846374460"
-  };
-  firebase.initializeApp(config);
-  
-  var database = firebase.database();
+  apiKey: "AIzaSyAkKIGuNWl7S3MPGZ1YoRqrzI338vidvB8",
+  authDomain: "multiplayerrps-4204d.firebaseapp.com",
+  databaseURL: "https://multiplayerrps-4204d.firebaseio.com",
+  projectId: "multiplayerrps-4204d",
+  storageBucket: "multiplayerrps-4204d.appspot.com",
+  messagingSenderId: "967846374460"
+};
+firebase.initializeApp(config);
 
+var database = firebase.database();
 
-function resetGameData(){
-    $("#p1-name").text("Player 1")
-    $("#p2-name").text("Player 2")
-    database.ref("/moves/").set({
-        move: 0
-    })
-    database.ref("players/playeronename/").set({
-        name: "Player 1"
-    })
-    database.ref("players/playertwoname/").set({
-        name: "Player 2"
-    })
+function resetGameData() {
+  $("#p1-name").text("Player 1");
+  $("#p2-name").text("Player 2");
+  database.ref("/moves/").set({
+    move: 0
+  });
+  database.ref("players/playeronename/").set({
+    name: "Player 1"
+  });
+  database.ref("players/playertwoname/").set({
+    name: "Player 2"
+  });
+  database.ref("/result").remove()
 }
 
-
-
-  //Setting up connetions ref
+//Setting up connetions ref
 var connectionsRef = database.ref("/connections");
 
 //Setting info ref
@@ -69,25 +67,26 @@ connectedRef.on("value", function(snap) {
   }
 });
 
-
-
 //Listener to if connections ref changes
 connectionsRef.on("value", function(snapshot) {
-    console.log(snapshot.val())
-//Update connectedPlayers variable based on number of children in node
+  console.log(snapshot.val());
+  //Update connectedPlayers variable based on number of children in node
   connectedPlayers = snapshot.numChildren();
-//If we have one person conneted, display that to users and add click listener on start button
+  //If we have one person conneted, display that to users and add click listener on start button
   if (connectedPlayers === 1) {
-    resetGameData();//For when game is reset to 1 player, data reloads
+    resetGameData(); //For when game is reset to 1 player, data reloads
     console.log("One player has connected, starting game");
     $(".details").text("Player 1 has connected... Please enter your name");
     $(".add-name").on("click", updatePlayerName);
   }
 
   if (connectedPlayers === 2) {
-    database.ref("/players/playeronename").once('value').then(function(snap){
+    database
+      .ref("/players/playeronename")
+      .once("value")
+      .then(function(snap) {
         $("#p1-name").text(snapshot.val().name);
-        })
+      });
     $(".details").text("Player 2 has connected... Please enter your name");
     $(".add-name").on("click", updatePlayerName);
   }
@@ -108,84 +107,21 @@ function updatePlayerName() {
     firebasePlayerAdd(playerTwoName);
     $(".name-input").val("");
     $(".add-name").off();
-    progressMoveFirst()
+    progressMoveFirst();
   }
 }
 
 //Function to update P1 and P2 name in database
 function firebasePlayerAdd(name) {
-    if (connectedPlayers === 1) {
-      database.ref("/players/playeronename").set({
-        playerOneName: name
-      });
-    } else {
-      database.ref("/players/playertwoname").set({
-        playerTwoName: name
-      });
- }
+  if (connectedPlayers === 1) {
+    database.ref("/players/playeronename").set({
+      playerOneName: name
+    });
+  } else {
+    database.ref("/players/playertwoname").set({
+      playerTwoName: name
+    });
   }
-
-//GAME MECHANICS
-
-//Function to increase move count
-function progressMoveFirst(){
-    database.ref("/moves").child("/move").set(1)
-}
-
-function progressMoveSecond(){
-    database.ref("/moves").child("/move").set(2)
-}
-function progressMoveThird(){
-    database.ref("/moves").child("/move").set(3)
-}
-
-//Listener for when move variable changes
-database.ref("/moves").on("value", function(snap){
-    console.log("Move just increased to " + snap.val().move)
-    if(snap.val().move === 1){
-        playerOneThrow(snap.val().move);
-    }
-    if(snap.val().move === 2){
-        playerTwoThrow(snap.val().move);
-    }
-})
-
-function playerOneThrow(move) {
-    $(".details").text("Player 1, choose your throw");
-    $(".p1-hands").on("click", playerOneChooseHand)
-}
-
-function playerOneChooseHand(){
-    console.log('Player 1 hand clicked')
-    let hand = $(this).attr("data-value");
-    console.log('Player 1 chose' + hand)
-    progressMoveSecond();
-    evaluateMatch(hand);
-}
-
-function playerTwoThrow(move){
-    $(".details").text("Player 1 has thrown, player 2, choose your throw");
-    console.log('Move is now ' + move + ' player two is going to throw')
-    $(".p2-hands").on("click", playerTwoChooseHand)
-}
-
-function playerTwoChooseHand(){
-    progressMoveThird();
-    console.log('Player 2 hand clicked')
-    let hand = $(this).attr("data-value");
-    console.log('player 2 chose' + hand)
-    evaluateMatch(hand);
-}
-
-function evaluateMatch(hand){
-    database.ref("/moves/move").once('value').then(function(snap){
-    console.log(snap.val())
-    if(snap.val() === 2){
-    database.ref("/throws").child("/p1throw").set(hand)
-    } else if (snap.val() === 3){
-    database.ref("/throws").child("/p2throw").set(hand)
-    }
-    })
 }
 
 //When there is a change in P1 or P2 nodes, update that on HTML -- need to fix this so that it does not auto
@@ -198,7 +134,108 @@ database.ref("/players/playertwoname").on("value", function(snapshot) {
   $("#p2-name").text(snapshot.val().playerTwoName);
 });
 
-//database.ref("/players/playeronename").once('value').then(function(snap){
-    //console.log(snap.val().name)
-    //$("#p1-name").text(snapshot.val().name);
-    //})
+//GAME MECHANICS
+
+//Function to increase move count
+function progressMoveFirst() {
+  database
+    .ref("/moves")
+    .child("/move")
+    .set(1);
+}
+
+function progressMoveSecond() {
+  database
+    .ref("/moves")
+    .child("/move")
+    .set(2);
+}
+function progressMoveThird() {
+  database
+    .ref("/moves")
+    .child("/move")
+    .set(3);
+}
+
+//Listener for when move variable changes
+database.ref("/moves").on("value", function(snap) {
+  console.log("Move just increased to " + snap.val().move);
+  if (snap.val().move === 1) {
+    playerOneThrow(snap.val().move);
+  }
+  if (snap.val().move === 2) {
+    playerTwoThrow(snap.val().move);
+  }
+});
+
+function playerOneThrow(move) {
+  $(".details").text("Player 1, choose your throw");
+  $(".p1-hands").on("click", playerOneChooseHand);
+}
+
+function playerOneChooseHand() {
+  console.log("Player 1 hand clicked");
+  let hand = $(this).attr("data-value");
+  console.log("Player 1 chose" + hand);
+  progressMoveSecond();
+  evaluateMatch(hand);
+}
+
+function playerTwoThrow(move) {
+  $(".details").text("Player 1 has thrown, player 2, choose your throw");
+  console.log("Move is now " + move + " player two is going to throw");
+  $(".p2-hands").on("click", playerTwoChooseHand);
+}
+
+function playerTwoChooseHand() {
+  progressMoveThird();
+  console.log("Player 2 hand clicked");
+  let hand = $(this).attr("data-value");
+  console.log("player 2 chose" + hand);
+  evaluateMatch(hand);
+}
+
+function evaluateMatch(hand) {
+  database
+    .ref("/moves/move")
+    .once("value")
+    .then(function(snap) {
+      console.log(snap.val());
+      if (snap.val() === 2) {
+        database
+          .ref("/throws/p1throw")
+          .child("/throwVal")
+          .set(hand);
+      } else if (snap.val() === 3) {
+        database
+          .ref("/throws/p2throw")
+          .child("/throwVal")
+          .set(hand);
+        database.ref("/throws").on("value", function(snapshot) {
+          console.log(snapshot.val().p1throw.throwVal);
+          console.log(snapshot.val().p2throw.throwVal);
+            if (snapshot.val().p1throw.throwVal === snapshot.val().p2throw.throwVal){
+                console.log('tie game')
+                database.ref('/result/').set({
+                    gameresult: "tie"
+                })
+                database.ref('/results/').set({
+                    ties: 1
+                })
+            }
+        });
+      }
+    });
+}
+
+database.ref('/result').on("child_added",function(resultsnap){
+    console.log()
+    database
+      .ref("/throws/")
+      .once("value")
+      .then(function(throwsnap) {
+        $(".details").text("Player 1 chose " + throwsnap.val().p1throw.throwVal + " and player 2 chose " + throwsnap.val().p2throw.throwVal);
+        $(".details").append("<br>The game ended with a " + resultsnap.val());
+    });
+
+})
