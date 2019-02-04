@@ -167,6 +167,7 @@ function progressMoveThird() {
 database.ref("/moves").on("value", function(snap) {
   console.log("Move just increased to " + snap.val().move);
   if (snap.val().move === 1) {
+      console.log("Since move is 1, we are going back to beggining")
     playerOneThrow(snap.val().move);
   }
   if (snap.val().move === 2) {
@@ -175,11 +176,13 @@ database.ref("/moves").on("value", function(snap) {
 });
 
 function playerOneThrow() {
+    console.log("This should reset the text to player 1 throw for both")
   $(".details").text("Player 1, choose your throw");
   $(".p1-hands").on("click", playerOneChooseHand);
 }
 
 function playerOneChooseHand() {
+  $(".p1-hands").off()
   let hand = $(this).attr("data-value");
   console.log("Player 1 chose" + hand);
   progressMoveSecond();
@@ -193,6 +196,7 @@ function playerTwoThrow(move) {
 }
 
 function playerTwoChooseHand() {
+  $(".p2-hands").off()
   progressMoveThird();
   console.log("Player 2 hand clicked");
   let hand = $(this).attr("data-value");
@@ -269,9 +273,9 @@ database.ref('/results/gameresult').on("child_added",function(resultsnap){
               p1losses++
           }
           database.ref("/results/gameresult").remove()
+          console.log("resetting moves to 1")
           database.ref("/moves").child("/move").set(1);
-          database.ref("/throws/p1throw").remove()
-          database.ref("/throws/p2throw").remove()
+          database.ref("/throws").remove();
           console.log(ties)
           console.log(p1wins)
           console.log(p2wins)
