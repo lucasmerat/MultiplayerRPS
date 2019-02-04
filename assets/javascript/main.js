@@ -52,13 +52,6 @@ function resetGameData() {
     name: "Player 2"
   });
   database.ref("/results/gameresult").remove()
-  database.ref("/results/").set({
-    ties: 0,
-    p1wins: 0,
-    p1losses: 0,
-    p2wins: 0,
-    p2losses: 0,
-  });
 }
 
 //Setting up connetions ref
@@ -181,7 +174,7 @@ database.ref("/moves").on("value", function(snap) {
   }
 });
 
-function playerOneThrow(move) {
+function playerOneThrow() {
   $(".details").text("Player 1, choose your throw");
   $(".p1-hands").on("click", playerOneChooseHand);
 }
@@ -276,10 +269,9 @@ database.ref('/results/gameresult').on("child_added",function(resultsnap){
               p1losses++
           }
           database.ref("/results/gameresult").remove()
-          database
-    .ref("/moves")
-    .child("/move")
-    .set(0);
+          database.ref("/moves").child("/move").set(1);
+          database.ref("/throws/p1throw").remove()
+          database.ref("/throws/p2throw").remove()
           console.log(ties)
           console.log(p1wins)
           console.log(p2wins)
