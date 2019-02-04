@@ -62,7 +62,6 @@ var connectedRef = database.ref(".info/connected");
 
 //Listener on changes in number of connections
 connectedRef.on("value", function(snap) {
-  console.log(snap.val());
 
   if (snap.val()) {
     // Add user to the connections list.
@@ -81,7 +80,6 @@ connectionsRef.on("value", function(snapshot) {
   //If we have one person conneted, display that to users and add click listener on start button
   if (connectedPlayers === 1) {
     resetGameData(); //For when game is reset to 1 player, data reloads
-    console.log("One player has connected, starting game");
     $(".details").text("Player 1 has connected... Please enter your name");
     $(".add-name").on("click", updatePlayerName);
   }
@@ -113,7 +111,7 @@ function updatePlayerName() {
     firebasePlayerAdd(playerTwoName);
     $(".name-input").val("");
     $(".add-name").off();
-    progressMoveFirst();
+    progressMove(1);
   }
 }
 
@@ -143,31 +141,17 @@ database.ref("/players/playertwoname").on("value", function(snapshot) {
 //GAME MECHANICS
 
 //Function to increase move count
-function progressMoveFirst() {
+function progressMove(num) {
   database
     .ref("/moves")
     .child("/move")
-    .set(1);
-}
-
-function progressMoveSecond() {
-  database
-    .ref("/moves")
-    .child("/move")
-    .set(2);
-}
-function progressMoveThird() {
-  database
-    .ref("/moves")
-    .child("/move")
-    .set(3);
+    .set(num);
 }
 
 //Listener for when move variable changes
 database.ref("/moves").on("value", function(snap) {
   console.log("Move just increased to " + snap.val().move);
   if (snap.val().move === 1) {
-      console.log("Since move is 1, we are going back to beggining")
     playerOneThrow(snap.val().move);
   }
   if (snap.val().move === 2) {
@@ -176,7 +160,6 @@ database.ref("/moves").on("value", function(snap) {
 });
 
 function playerOneThrow() {
-    console.log("This should reset the text to player 1 throw for both")
   $(".details").text("Player 1, choose your throw");
   $(".p1-hands").on("click", playerOneChooseHand);
 }
@@ -185,7 +168,7 @@ function playerOneChooseHand() {
   $(".p1-hands").off()
   let hand = $(this).attr("data-value");
   console.log("Player 1 chose" + hand);
-  progressMoveSecond();
+  progressMove(2);
   evaluateMatch(hand);
 }
 
@@ -197,7 +180,7 @@ function playerTwoThrow(move) {
 
 function playerTwoChooseHand() {
   $(".p2-hands").off()
-  progressMoveThird();
+  progressMove(3);
   console.log("Player 2 hand clicked");
   let hand = $(this).attr("data-value");
   console.log("player 2 chose" + hand);
@@ -260,6 +243,7 @@ database.ref('/results/gameresult').on("child_added",function(resultsnap){
       .ref("/throws/")
       .once("value")
       .then(function(throwsnap) {
+        console.log(throwsnap.val()) 
         $(".details").text("Player 1 chose " + throwsnap.val().p1throw.throwVal + " and player 2 chose " + throwsnap.val().p2throw.throwVal);
         console.log("both should see this")
         $(".details").append("<br>" + resultsnap.val());
@@ -275,7 +259,8 @@ database.ref('/results/gameresult').on("child_added",function(resultsnap){
           database.ref("/results/gameresult").remove()
           console.log("resetting moves to 1")
           database.ref("/moves").child("/move").set(1);
-          database.ref("/throws").remove();
+          database.ref("/throws/p1throw").child("throwVal").set("blank1")
+          database.ref("/throws/p2throw").child("throwVal").set("blank2")
           console.log(ties)
           console.log(p1wins)
           console.log(p2wins)
@@ -283,6 +268,7 @@ database.ref('/results/gameresult').on("child_added",function(resultsnap){
 })
 //Update results on page
 database.ref('/results/gameresult').on("value",function(snap){
+    console.log("Updating screen for both")
     $("#p1-wins").text(p1wins)
     $("#p2-wins").text(p2wins)
     $("#p1-losses").text(p1losses)
