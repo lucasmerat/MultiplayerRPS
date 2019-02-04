@@ -229,8 +229,7 @@ database.ref('/results/gameresult').on("child_added",function(resultsnap){
       .then(function(throwsnap) {
         console.log(throwsnap.val()) 
         $(".details").text("Player 1 chose " + throwsnap.val().p1throw.throwVal + " and player 2 chose " + throwsnap.val().p2throw.throwVal);
-        console.log("both should see this")
-        $(".details").append("<br>" + resultsnap.val());
+        $(".details").append("<br> The result was: " + resultsnap.val());
           if(resultsnap.val() === "tie"){
               ties++
           } else if (resultsnap.val() === "p1 wins"){
@@ -241,15 +240,15 @@ database.ref('/results/gameresult').on("child_added",function(resultsnap){
               p1losses++
           }
           database.ref("/results/gameresult").remove()
-          console.log("resetting moves to 1")
+          console.log("resetting moves to 1 - player one choose hand")
           database.ref("/moves").child("/move").set(1);
-          database.ref("/throws/p1throw").child("throwVal").set("blank1")
-          database.ref("/throws/p2throw").child("throwVal").set("blank2")
-          console.log(ties)
-          console.log(p1wins)
-          console.log(p2wins)
+          database.ref("/throws").remove()
+          console.log(ties + " ties")
+          console.log(p1wins + " p1wins")
+          console.log(p2wins + " p2wins") 
     });
 })
+
 //Update results on page
 database.ref('/results/gameresult').on("value",function(snap){
     console.log("Updating screen for both")
