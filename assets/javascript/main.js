@@ -19,10 +19,10 @@ let connectedPlayers = 0;
 let playerOneName;
 let playerTwoName;
 let move = 0;
-let p1wins;
-let p2wins;
-let p1losses;
-let p2losses;
+let p1wins = 0;
+let p2wins = 0;
+let p1losses = 0;
+let p2losses = 0;
 let ties = 0;
 
 
@@ -208,19 +208,21 @@ function playerTwoChooseHand() {
 }
 
 function evaluateMatch(hand) {
-    console.log("Evaluating match")
   database
     .ref("/moves/move")
     .once("value")
     .then(function(snap) {
       console.log(snap.val());
+      //On p1 turn, stores value of p1 throw in firebase
       if (snap.val() === 2) {
+        console.log('storing p1 hand')
         database
           .ref("/throws/p1throw")
           .child("/throwVal")
           .set(hand);
-          //On move 3, both throws are recorded and match is evaluated
+        //On move 3, both throws are recorded and match is evaluated
       } else if (snap.val() === 3) {
+          console.log('Turn is 3, recording p2 throw')
         database
           .ref("/throws/p2throw")
           .child("/throwVal")
@@ -228,14 +230,26 @@ function evaluateMatch(hand) {
         database.ref("/throws").on("value", function(snapshot) {
             let p1throw = snapshot.val().p1throw.throwVal;
             let p2throw = snapshot.val().p2throw.throwVal;
-
+            console.log('Throws has changed, evaluating match')
             if (p1throw === p2throw){
                 database.ref('/results/gameresult').child("/outcome").set("tie")
             } else if(p1throw === "rock"){
                 if(p2throw === "paper"){
                 database.ref('/results/gameresult').child("/outcome").set("p2 wins")
-                } else if(p2throw === "paper")
-
+                } else if(p2throw === "scissors")
+                database.ref('/results/gameresult').child("/outcome").set("p1 wins")
+            } else if (p1throw === "paper"){
+                if(p2throw === "rock"){
+                database.ref('/results/gameresult').child("/outcome").set("p1 wins")
+                } else if (p2throw === "scissors"){
+                database.ref('/results/gameresult').child("/outcome").set("p2 wins")
+                }
+            } else if(p1throw === "scissors"){
+                if(p2throw === "paper"){
+                database.ref('/results/gameresult').child("/outcome").set("p1 wins")
+                } else if (p2throw === "rock"){
+                 database.ref('/results/gameresult').child("/outcome").set("p2 wins")
+                }
             }
         });
       }
@@ -243,31 +257,39 @@ function evaluateMatch(hand) {
 }
 
 //Listens for change in results, triggered by setting outcome and results above
-database.ref('/results/').on("child_changed",function(resultsnap){
+database.ref('/results/gameresult').on("child_added",function(resultsnap){
+    console.log(resultsnap.val())
     database
       .ref("/throws/")
       .once("value")
       .then(function(throwsnap) {
         $(".details").text("Player 1 chose " + throwsnap.val().p1throw.throwVal + " and player 2 chose " + throwsnap.val().p2throw.throwVal);
-        //$(".details").append("<br>The game ended with a " + resultsnap.val().gameresult.outcome);
         console.log("both should see this")
-        database
-      .ref("/results/gameresult")
-      .once("value")
-      .then(function(snap) {
-          if(snap.val().outcome === "tie"){
+        $(".details").append("<br>" + resultsnap.val());
+          if(resultsnap.val() === "tie"){
               ties++
-          } else if (snap.val().outcome === "tie"){
-
+          } else if (resultsnap.val() === "p1 wins"){
+              p1wins++
+              p2losses++
+          } else if(resultsnap.val() === "p2 wins"){
+              p2wins++
+              p1losses++
           }
+          database.ref("/results/gameresult").remove()
+          database
+    .ref("/moves")
+    .child("/move")
+    .set(0);
+          console.log(ties)
+          console.log(p1wins)
+          console.log(p2wins)
     });
 })
-})
 //Update results on page
-database.ref('/results').on("value",function(snap){
-    $("#p1-wins").text(snap.val().p1wins)
-    $("#p2-wins").text(snap.val().p2wins)
-    $("#p1-losses").text(snap.val().p1losses)
-    $("#p2-losses").text(snap.val().p2losses)
-    $(".ties").text(snap.val().ties)
+database.ref('/results/gameresult').on("value",function(snap){
+    $("#p1-wins").text(p1wins)
+    $("#p2-wins").text(p2wins)
+    $("#p1-losses").text(p1losses)
+    $("#p2-losses").text(p2losses)
+    $(".ties").text(ties)
 })
