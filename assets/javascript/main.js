@@ -157,6 +157,10 @@ database.ref("/moves").on("value", function(snap) {
   if (snap.val().move === 2) {
     playerTwoThrow(snap.val().move);
   }
+  if (snap.val().move === 3) {
+      console.log("Move is 3, evaluating match")
+    evaluateMatch();
+  }
 });
 
 function playerOneThrow() {
@@ -169,12 +173,11 @@ function playerOneChooseHand() {
   let hand = $(this).attr("data-value");
   console.log("Player 1 chose" + hand);
   progressMove(2);
-  evaluateMatch(hand);
+  database.ref("/throws/p1throw").child("/throwVal").set(hand);
 }
 
-function playerTwoThrow(move) {
+function playerTwoThrow() {
   $(".details").text("Player 1 has thrown, player 2, choose your throw");
-  console.log("Move is now " + move + " player two is going to throw");
   $(".p2-hands").on("click", playerTwoChooseHand);
 }
 
@@ -183,34 +186,17 @@ function playerTwoChooseHand() {
   progressMove(3);
   console.log("Player 2 hand clicked");
   let hand = $(this).attr("data-value");
-  console.log("player 2 chose" + hand);
-  evaluateMatch(hand);
+  console.log("Player 2 chose" + hand);
+  database.ref("/throws/p2throw").child("/throwVal").set(hand);
 }
 
-function evaluateMatch(hand) {
-  database
-    .ref("/moves/move")
+function evaluateMatch() {
+    database.ref("/throws/")
     .once("value")
-    .then(function(snap) {
-      console.log(snap.val());
-      //On p1 turn, stores value of p1 throw in firebase
-      if (snap.val() === 2) {
-        console.log('storing p1 hand')
-        database
-          .ref("/throws/p1throw")
-          .child("/throwVal")
-          .set(hand);
-        //On move 3, both throws are recorded and match is evaluated
-      } else if (snap.val() === 3) {
-          console.log('Turn is 3, recording p2 throw')
-        database
-          .ref("/throws/p2throw")
-          .child("/throwVal")
-          .set(hand);
-        database.ref("/throws").on("value", function(snapshot) {
-            let p1throw = snapshot.val().p1throw.throwVal;
-            let p2throw = snapshot.val().p2throw.throwVal;
-            console.log('Throws has changed, evaluating match')
+    .then(function(throwsnap) {
+        console.log(throwsnap.val())
+            let p1throw = throwsnap.val().p1throw.throwVal;
+            let p2throw = throwsnap.val().p2throw.throwVal;
             if (p1throw === p2throw){
                 database.ref('/results/gameresult').child("/outcome").set("tie")
             } else if(p1throw === "rock"){
@@ -232,9 +218,7 @@ function evaluateMatch(hand) {
                 }
             }
         });
-      }
-    });
-}
+    }
 
 //Listens for change in results, triggered by setting outcome and results above
 database.ref('/results/gameresult').on("child_added",function(resultsnap){
