@@ -19,6 +19,12 @@ let connectedPlayers = 0;
 let playerOneName;
 let playerTwoName;
 let move = 0;
+let p1wins;
+let p2wins;
+let p1losses;
+let p2losses;
+let ties = 0;
+
 
 //Firebase config
 var config = {
@@ -202,6 +208,7 @@ function playerTwoChooseHand() {
 }
 
 function evaluateMatch(hand) {
+    console.log("Evaluating match")
   database
     .ref("/moves/move")
     .once("value")
@@ -212,24 +219,30 @@ function evaluateMatch(hand) {
           .ref("/throws/p1throw")
           .child("/throwVal")
           .set(hand);
+          //On move 3, both throws are recorded and match is evaluated
       } else if (snap.val() === 3) {
         database
           .ref("/throws/p2throw")
           .child("/throwVal")
           .set(hand);
         database.ref("/throws").on("value", function(snapshot) {
-          console.log(snapshot.val().p1throw.throwVal);
-          console.log(snapshot.val().p2throw.throwVal);
-            if (snapshot.val().p1throw.throwVal === snapshot.val().p2throw.throwVal){
-                console.log('tie game')
+            let p1throw = snapshot.val().p1throw.throwVal;
+            let p2throw = snapshot.val().p2throw.throwVal;
+
+            if (p1throw === p2throw){
                 database.ref('/results/gameresult').child("/outcome").set("tie")
-                database.ref('/results/').child("/ties").set(1)
+            } else if(p1throw === "rock"){
+                if(p2throw === "paper"){
+                database.ref('/results/gameresult').child("/outcome").set("p2 wins")
+                } else if(p2throw === "paper")
+
             }
         });
       }
     });
 }
 
+//Listens for change in results, triggered by setting outcome and results above
 database.ref('/results/').on("child_changed",function(resultsnap){
     database
       .ref("/throws/")
@@ -237,13 +250,21 @@ database.ref('/results/').on("child_changed",function(resultsnap){
       .then(function(throwsnap) {
         $(".details").text("Player 1 chose " + throwsnap.val().p1throw.throwVal + " and player 2 chose " + throwsnap.val().p2throw.throwVal);
         //$(".details").append("<br>The game ended with a " + resultsnap.val().gameresult.outcome);
-        console.log(resultsnap.val())
+        console.log("both should see this")
+        database
+      .ref("/results/gameresult")
+      .once("value")
+      .then(function(snap) {
+          if(snap.val().outcome === "tie"){
+              ties++
+          } else if (snap.val().outcome === "tie"){
+
+          }
     });
-
 })
-
+})
+//Update results on page
 database.ref('/results').on("value",function(snap){
-    console.log(snap.val().p1wins)
     $("#p1-wins").text(snap.val().p1wins)
     $("#p2-wins").text(snap.val().p2wins)
     $("#p1-losses").text(snap.val().p1losses)
