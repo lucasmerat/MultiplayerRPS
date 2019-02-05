@@ -4,7 +4,9 @@ body {
   -moz-background-size: cover;
   -o-background-size: cover;
   background-size: cover;
+  font-family: 'Cabin Sketch', cursive;
 }
+
 
 
 #start{
@@ -12,13 +14,37 @@ body {
 }
 
 h1{
-    color:green;
+    font-size:45px;
+}
+
+h1,h2{
+    font-family: 'Cabin Sketch', cursive;
 }
 
 .hands{
     width:370px;
     margin:0 auto;
-    font-size: 40px;
+    font-size: 45px;
+}
+
+#p1-rock, #p2-rock{
+    color:#ef403c;
+}
+
+#p1-paper, #p2-paper{
+    color:#e8e847;
+}
+
+#p1-scissors, #p2-scissors{
+    color:#3e3ef3;
+}
+
+#title{
+    margin-bottom:0px;
+}
+
+#description{
+    margin-top:0px;
 }
 
 .p1-hands, .p2-hands {
@@ -30,7 +56,7 @@ h1{
 }
 
 .rps-icon{
-    font-size:40px;
+    font-size:50px;
     margin-top:20px;
 }
 
@@ -39,7 +65,7 @@ h1{
 }
 
 .battleground {
-    border: 1px solid black;
+    border: 3px ridge black;
     min-height: 340px;
 }
 

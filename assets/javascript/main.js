@@ -271,11 +271,11 @@ database.ref('/results/gameresult').on("child_added",function(resultsnap){
           //Update results on page 
           database.ref('/results/gameresult').on("value",function(snap){
             console.log("Updating screen for both because game result has changed")
-            $("#p1-wins").text(p1wins)
-            $("#p2-wins").text(p2wins)
-            $("#p1-losses").text(p1losses)
-            $("#p2-losses").text(p2losses)
-            $(".ties").text(ties)
+            $("#p1-wins").text(p1wins + " ")
+            $("#p2-wins").text(p2wins + " ")
+            $("#p1-losses").text(p1losses + " ")
+            $("#p2-losses").text(p2losses + " ")
+            $(".ties").text(ties + " ")
         })
     });
 })
