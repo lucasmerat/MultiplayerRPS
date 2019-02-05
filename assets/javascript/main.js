@@ -56,7 +56,6 @@ function resetGameData() {
     name: "Player 2"
   });
   database.ref("/results/gameresult").remove()
-  database.ref("/messages").remove()
 }
 
 //
@@ -262,6 +261,7 @@ database.ref('/results/gameresult').on("child_added",function(resultsnap){
           }
           database.ref("/moves").child("/move").set(1); //Bring game back to p1throw point
           $(".details").prepend("The result was: " + resultsnap.val() + "<br><br>");
+        
           $(".details").prepend(" Player 1 chose " + throwsnap.val().p1throw.throwVal + " and player 2 chose " + throwsnap.val().p2throw.throwVal + "<br><br>");
           database.ref("/throws").remove()
           console.log(ties + " ties")
@@ -295,10 +295,11 @@ function sendMessage(event){
     chatBox.scrollTop(chatBox[0].scrollHeight) //Snaps chat to bottom of box
 }
 
+console.log(connectedPlayers)
+
 database.ref("/messages").on("value",function(messagesSnap){
     let messages = messagesSnap.val()
     let objectKeys = Object.keys(messages);
-    console.log(objectKeys)
     $(".chat-box").empty() //clears chat box before iterating thru list of messages
     for (let i = 0; i < objectKeys.length; i++) {
         let k = objectKeys[i];
@@ -307,5 +308,4 @@ database.ref("/messages").on("value",function(messagesSnap){
     }
     let chatBox = $(".chat-box")
     chatBox.scrollTop(chatBox[0].scrollHeight) //Snaps chat to bottom of box
-
 })
