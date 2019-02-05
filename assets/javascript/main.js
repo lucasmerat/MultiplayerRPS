@@ -20,8 +20,7 @@
 //
 
 let connectedPlayers = 0;
-let playerOneName;
-let playerTwoName;
+let myName = "A player";
 let p1wins = 0;
 let p2wins = 0;
 let p1losses = 0;
@@ -88,6 +87,10 @@ connectionsRef.on("value", function(snapshot) {
   //Update connectedPlayers variable based on number of children in node
   connectedPlayers = snapshot.numChildren();
   //If we have one person conneted, display that to users and add click listener on start button
+  if (connectedPlayers === 0) {
+    resetGameData()
+  }
+
   if (connectedPlayers === 1) {
     resetGameData(); //For when game is reset to 1 player, data reloads
     $(".details").text("Player 1 has connected... Please enter your name");
@@ -100,7 +103,6 @@ connectionsRef.on("value", function(snapshot) {
       .once("value")
       .then(function(snap) {
         $("#p1-name").text(snap.val().name);
-        $(".chat-box").append("<p>" + snap.val().name + " is in the game")
       });
     $(".details").text("Player 2 has connected... Please enter your name");
     $(".add-name").on("click", updatePlayerName);
@@ -111,6 +113,7 @@ function updatePlayerName() {
   //If first player has connected, run script to have player 1 choose a name
   if (connectedPlayers === 1) {
     playerOneName = $(".name-input").val();
+    myName = $(".name-input").val();
     firebasePlayerAdd(playerOneName);
     $(".name-input").val("");
     $(".add-name").off();
@@ -119,6 +122,7 @@ function updatePlayerName() {
   //If second player connected,
   if (connectedPlayers === 2) {
     playerTwoName = $(".name-input").val();
+    myName = $(".name-input").val();
     firebasePlayerAdd(playerTwoName);
     $(".name-input").val("");
     $(".add-name").off();
@@ -279,12 +283,13 @@ database.ref('/results/gameresult').on("child_added",function(resultsnap){
 
 $("#send-button").on("click", sendMessage)
 
-//Pushes message to message tree with value of what is in chat input
+//Pushes message to message tree with value of what is in chat input with name of user
 function sendMessage(event){
     event.preventDefault()
     let chatBox = $(".chat-box")
-    database.ref("/messages").push($("#chat-input").val());
+    database.ref("/messages").push(myName + ": " + $("#chat-input").val());
     chatBox.scrollTop(chatBox[0].scrollHeight) //Snaps chat to bottom of box
+    $("#chat-input").val("")
 }
 
 database.ref("/messages").on("value",function(messagesSnap){
