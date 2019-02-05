@@ -94,6 +94,7 @@ connectionsRef.on("value", function(snapshot) {
   if (connectedPlayers === 1) {
     resetGameData(); //For when game is reset to 1 player, data reloads
     $(".details").text("Player 1 has connected... Please enter your name");
+    $("#p1-name").css("color","green")
     $(".add-name").on("click", updatePlayerName);
   }
 
@@ -103,8 +104,10 @@ connectionsRef.on("value", function(snapshot) {
       .once("value")
       .then(function(snap) {
         $("#p1-name").text(snap.val().name);
+        $("#p1-name").css("color","green")
       });
     $(".details").text("Player 2 has connected... Please enter your name");
+    $("#p2-name").css("color","green")
     $(".add-name").on("click", updatePlayerName);
   }
 });
@@ -288,8 +291,8 @@ function sendMessage(event){
     event.preventDefault()
     let chatBox = $(".chat-box")
     database.ref("/messages").push(myName + ": " + $("#chat-input").val());
-    chatBox.scrollTop(chatBox[0].scrollHeight) //Snaps chat to bottom of box
     $("#chat-input").val("")
+    chatBox.scrollTop(chatBox[0].scrollHeight) //Snaps chat to bottom of box
 }
 
 database.ref("/messages").on("value",function(messagesSnap){
@@ -302,4 +305,7 @@ database.ref("/messages").on("value",function(messagesSnap){
         let theMessage = messages[k]
         $(".chat-box").append("<p>" + theMessage)
     }
+    let chatBox = $(".chat-box")
+    chatBox.scrollTop(chatBox[0].scrollHeight) //Snaps chat to bottom of box
+
 })
