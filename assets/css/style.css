@@ -21,6 +21,10 @@ h1,h2{
     font-family: 'Cabin Sketch', cursive;
 }
 
+.name-input{
+    border: 1px solid black;
+}
+
 .hands{
     width:370px;
     margin:0 auto;
@@ -45,6 +49,7 @@ h1,h2{
 
 #description{
     margin-top:0px;
+    margin-bottom: 20px;
 }
 
 .p1-hands, .p2-hands {
@@ -56,12 +61,13 @@ h1,h2{
 }
 
 .rps-icon{
-    font-size:50px;
+    height:60px;
+    width:75px;
     margin-top:20px;
 }
 
-.score-counters{
-    font-size:14px;
+.player-scores{
+    font-size:16px;
 }
 
 .battleground {
