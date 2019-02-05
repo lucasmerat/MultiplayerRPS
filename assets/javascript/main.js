@@ -94,6 +94,7 @@ connectionsRef.on("value", function(snapshot) {
     resetGameData(); //For when game is reset to 1 player, data reloads
     $(".details").text("Player 1 has connected... Please enter your name");
     $("#p1-name").css("color","green")
+    $("#p2-name").css("color","#333")
     $(".add-name").on("click", updatePlayerName);
   }
 
