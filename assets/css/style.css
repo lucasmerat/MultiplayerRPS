@@ -25,6 +25,10 @@ h1,h2{
     border: 1px solid black;
 }
 
+.enter-name{
+    display:none;
+}
+
 .hands{
     width:370px;
     margin:0 auto;

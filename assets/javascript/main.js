@@ -92,6 +92,7 @@ connectionsRef.on("value", function(snapshot) {
 
   if (connectedPlayers === 1) {
     resetGameData(); //For when game is reset to 1 player, data reloads
+    $(".enter-name").slideDown("slow")
     $(".details").text("Player 1 has connected... Please enter your name");
     $("#p1-name").css("color","green")
     $("#p2-name").css("color","#333")
@@ -106,7 +107,8 @@ connectionsRef.on("value", function(snapshot) {
         $("#p1-name").text(snap.val().name);
         $("#p1-name").css("color","green")
       });
-    $(".details").text("Player 2 has connected... Please enter your name");
+    $(".details").text("Player 1 has connected... Please enter your name");
+    $(".enter-name").slideDown("slow")
     $("#p2-name").css("color","green")
     $(".add-name").on("click", updatePlayerName);
   }
@@ -120,6 +122,7 @@ function updatePlayerName() {
     firebasePlayerAdd(playerOneName);
     $(".name-input").val("");
     $(".add-name").off();
+    $(".enter-name").slideUp("slow")
     $(".details").text("Waiting for player 2...");
   }
   //If second player connected,
@@ -129,6 +132,7 @@ function updatePlayerName() {
     firebasePlayerAdd(playerTwoName);
     $(".name-input").val("");
     $(".add-name").off();
+    $(".enter-name").slideUp("slow")
     progressMove(1);
   }
 }
