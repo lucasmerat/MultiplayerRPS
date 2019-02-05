@@ -269,3 +269,13 @@ database.ref('/results/gameresult').on("child_added",function(resultsnap){
         })
     });
 })
+
+//
+//CHAT FUNCTIONALITY
+//
+
+$("#send-button").on("click", sendMessage)
+
+function sendMessage(){
+    $(".chat-box").append("<p>" + $("#chat-input").val())
+}
