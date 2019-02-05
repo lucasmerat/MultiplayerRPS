@@ -29,6 +29,11 @@ h1,h2{
     display:none;
 }
 
+.add-name{
+    border: 1px solid black;
+    padding-bottom: 1px;
+}
+
 .hands{
     width:370px;
     margin:0 auto;
@@ -97,6 +102,15 @@ h1,h2{
 
 #chat-input {
     border: 1px solid black;
+    font-family:arial;
+    font-weight: bold;
+}
+
+#send-button{
+    border: 1px solid black;
+    padding-top: 1px;
+    background-color: white;
+    padding-bottom: 0px;
 }
 
 .input-section{

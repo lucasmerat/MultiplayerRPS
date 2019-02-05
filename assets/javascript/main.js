@@ -107,7 +107,7 @@ connectionsRef.on("value", function(snapshot) {
         $("#p1-name").text(snap.val().name);
         $("#p1-name").css("color","green")
       });
-    $(".details").text("Player 1 has connected... Please enter your name");
+    $(".details").text("Player 2 has connected... Please enter your name");
     $(".enter-name").slideDown("slow")
     $("#p2-name").css("color","green")
     $(".add-name").on("click", updatePlayerName);
