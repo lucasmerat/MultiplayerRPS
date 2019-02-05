@@ -1,3 +1,12 @@
+body {
+  background: url(../images/newbg.png) no-repeat center center ; 
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+}
+
+
 #start{
     text-align:center;
 }
@@ -10,6 +19,10 @@ h1{
     width:370px;
     margin:0 auto;
     font-size: 40px;
+}
+
+.p1-hands, .p2-hands {
+    cursor:pointer;
 }
 
 .player-row{
@@ -46,3 +59,17 @@ h1{
     text-align:center;
     margin-bottom: 10px;
 }
+
+@media only screen and (max-width: 500px) { 
+    h2{
+        font-size:16px;
+    }
+
+    h3{
+        font-size: 14px;
+    }
+
+    .score-counters{
+        font-size: 12px;
+    }
+ }
