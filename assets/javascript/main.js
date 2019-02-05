@@ -57,6 +57,7 @@ function resetGameData() {
     name: "Player 2"
   });
   database.ref("/results/gameresult").remove()
+  database.ref("/messages").remove()
 }
 
 //
@@ -98,7 +99,8 @@ connectionsRef.on("value", function(snapshot) {
       .ref("/players/playeronename")
       .once("value")
       .then(function(snap) {
-        $("#p1-name").text(snapshot.val().name);
+        $("#p1-name").text(snap.val().name);
+        $(".chat-box").append("<p>" + snap.val().name + " is in the game")
       });
     $(".details").text("Player 2 has connected... Please enter your name");
     $(".add-name").on("click", updatePlayerName);
@@ -274,8 +276,25 @@ database.ref('/results/gameresult').on("child_added",function(resultsnap){
 //CHAT FUNCTIONALITY
 //
 
+
 $("#send-button").on("click", sendMessage)
 
-function sendMessage(){
-    $(".chat-box").append("<p>" + $("#chat-input").val())
+//Pushes message to message tree with value of what is in chat input
+function sendMessage(event){
+    event.preventDefault()
+    let chatBox = $(".chat-box")
+    database.ref("/messages").push($("#chat-input").val());
+    chatBox.scrollTop(chatBox[0].scrollHeight) //Snaps chat to bottom of box
 }
+
+database.ref("/messages").on("value",function(messagesSnap){
+    let messages = messagesSnap.val()
+    let objectKeys = Object.keys(messages);
+    console.log(objectKeys)
+    $(".chat-box").empty() //clears chat box before iterating thru list of messages
+    for (let i = 0; i < objectKeys.length; i++) {
+        let k = objectKeys[i];
+        let theMessage = messages[k]
+        $(".chat-box").append("<p>" + theMessage)
+    }
+})
