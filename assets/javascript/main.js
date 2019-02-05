@@ -14,19 +14,24 @@
 //restart the function for event listeners on for p1
 //If someone disconnects from the app, change their name back to P1 or P2 and run the portion of the script if they are p1 or p2 that disconnected
 
+
+//
 //Global Variables
+//
+
 let connectedPlayers = 0;
 let playerOneName;
 let playerTwoName;
-let move = 0;
 let p1wins = 0;
 let p2wins = 0;
 let p1losses = 0;
 let p2losses = 0;
 let ties = 0;
 
+//
+//Firebase config\
+//
 
-//Firebase config
 var config = {
   apiKey: "AIzaSyAkKIGuNWl7S3MPGZ1YoRqrzI338vidvB8",
   authDomain: "multiplayerrps-4204d.firebaseapp.com",
@@ -53,6 +58,10 @@ function resetGameData() {
   });
   database.ref("/results/gameresult").remove()
 }
+
+//
+//NAMING MECHANICS
+//
 
 //Setting up connetions ref
 var connectionsRef = database.ref("/connections");
@@ -138,7 +147,11 @@ database.ref("/players/playertwoname").on("value", function(snapshot) {
   $("#p2-name").text(snapshot.val().playerTwoName);
 });
 
+
+//
 //GAME MECHANICS
+//
+
 
 //Function to increase move count
 function progressMove(num) {
@@ -150,7 +163,7 @@ function progressMove(num) {
 
 //Listener for when move variable changes
 database.ref("/moves").on("value", function(snap) {
-  console.log("Move just increased to " + snap.val().move);
+  console.log("Move just changed to " + snap.val().move);
   if (snap.val().move === 1) {
     playerOneThrow(snap.val().move);
   }
@@ -160,6 +173,8 @@ database.ref("/moves").on("value", function(snap) {
   if (snap.val().move === 3) {
       console.log("Move is 3, evaluating match")
     evaluateMatch();
+    database.ref("/results/gameresult").remove()
+    console.log("removed the results node")
   }
 });
 
@@ -194,6 +209,7 @@ function evaluateMatch() {
     database.ref("/throws/")
     .once("value")
     .then(function(throwsnap) {
+        console.log("Displaying throws node once for match evaluation")
         console.log(throwsnap.val())
             let p1throw = throwsnap.val().p1throw.throwVal;
             let p2throw = throwsnap.val().p2throw.throwVal;
@@ -222,14 +238,10 @@ function evaluateMatch() {
 
 //Listens for change in results, triggered by setting outcome and results above
 database.ref('/results/gameresult').on("child_added",function(resultsnap){
-    console.log(resultsnap.val())
-    database
-      .ref("/throws/")
-      .once("value")
-      .then(function(throwsnap) {
+    console.log("Displaying results node because a child was added", resultsnap.val())
+    database.ref("/throws/").once("value").then(function(throwsnap) {
+          console.log("Displaying the throws node just once since a child was added to the game results node")
         console.log(throwsnap.val()) 
-        $(".details").text("Player 1 chose " + throwsnap.val().p1throw.throwVal + " and player 2 chose " + throwsnap.val().p2throw.throwVal);
-        $(".details").append("<br> The result was: " + resultsnap.val());
           if(resultsnap.val() === "tie"){
               ties++
           } else if (resultsnap.val() === "p1 wins"){
@@ -239,22 +251,21 @@ database.ref('/results/gameresult').on("child_added",function(resultsnap){
               p2wins++
               p1losses++
           }
-          database.ref("/results/gameresult").remove()
-          console.log("resetting moves to 1 - player one choose hand")
-          database.ref("/moves").child("/move").set(1);
+          database.ref("/moves").child("/move").set(1); //Bring game back to p1throw point
+          $(".details").prepend("The result was: " + resultsnap.val() + "<br><br>");
+          $(".details").prepend(" Player 1 chose " + throwsnap.val().p1throw.throwVal + " and player 2 chose " + throwsnap.val().p2throw.throwVal + "<br><br>");
           database.ref("/throws").remove()
           console.log(ties + " ties")
           console.log(p1wins + " p1wins")
           console.log(p2wins + " p2wins") 
+          //Update results on page 
+          database.ref('/results/gameresult').on("value",function(snap){
+            console.log("Updating screen for both because game result has changed")
+            $("#p1-wins").text(p1wins)
+            $("#p2-wins").text(p2wins)
+            $("#p1-losses").text(p1losses)
+            $("#p2-losses").text(p2losses)
+            $(".ties").text(ties)
+        })
     });
-})
-
-//Update results on page
-database.ref('/results/gameresult').on("value",function(snap){
-    console.log("Updating screen for both")
-    $("#p1-wins").text(p1wins)
-    $("#p2-wins").text(p2wins)
-    $("#p1-losses").text(p1losses)
-    $("#p2-losses").text(p2losses)
-    $(".ties").text(ties)
 })
