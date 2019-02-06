@@ -184,8 +184,6 @@ database.ref("/moves").on("value", function(snap) {
   }
   if (snap.val().move === 3) {
       console.log("Move is 3, evaluating match")
-    evaluateMatch();
-    database.ref("/results/gameresult").remove()
     console.log("removed the results node")
   }
 });
@@ -215,6 +213,7 @@ function playerTwoChooseHand() {
   let hand = $(this).attr("data-value");
   console.log("Player 2 chose" + hand);
   database.ref("/throws/p2throw").child("/throwVal").set(hand);
+  evaluateMatch();
 }
 
 function evaluateMatch() {
@@ -249,10 +248,12 @@ function evaluateMatch() {
     }
 
 //Listens for change in results, triggered by setting outcome and results above
+
 database.ref('/results/gameresult').on("child_added",function(resultsnap){
     console.log("Displaying results node because a child was added", resultsnap.val())
     database.ref("/throws/").once("value").then(function(throwsnap) {
           console.log("Displaying the throws node just once since a child was added to the game results node")
+        console.log(throwsnap.val()) 
         console.log(throwsnap.val()) 
           if(resultsnap.val() === "tie"){
               ties++
@@ -280,6 +281,7 @@ database.ref('/results/gameresult').on("child_added",function(resultsnap){
             $(".ties").text(ties + " ")
         })
     });
+    database.ref("/results/gameresult").remove()
 })
 
 //
@@ -297,8 +299,6 @@ function sendMessage(event){
     $("#chat-input").val("")
     chatBox.scrollTop(chatBox[0].scrollHeight) //Snaps chat to bottom of box
 }
-
-console.log(connectedPlayers)
 
 database.ref("/messages").on("value",function(messagesSnap){
     let messages = messagesSnap.val()
