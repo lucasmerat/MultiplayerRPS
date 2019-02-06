@@ -74,7 +74,6 @@ connectedRef.on("value", function(snap) {
   if (snap.val()) {
     // Add user to the connections list.
     var con = connectionsRef.push(true);
-
     // Remove user from the connection list when they disconnect.
     con.onDisconnect().remove();
   }
@@ -132,7 +131,6 @@ function updatePlayerName() {
     firebasePlayerAdd(playerTwoName);
     $(".name-input").val("");
     $(".add-name").off();
-    $(".enter-name").slideUp("slow")
     progressMove(1);
   }
 }
@@ -178,6 +176,7 @@ function progressMove(num) {
 database.ref("/moves").on("value", function(snap) {
   console.log("Move just changed to " + snap.val().move);
   if (snap.val().move === 1) {
+    $(".enter-name").slideUp("slow")
     playerOneThrow(snap.val().move);
   }
   if (snap.val().move === 2) {
@@ -268,7 +267,6 @@ database.ref('/results/gameresult').on("child_added",function(resultsnap){
           $(".details").prepend("The result was: " + resultsnap.val() + "<br><br>");
         
           $(".details").prepend(" Player 1 chose " + throwsnap.val().p1throw.throwVal + " and player 2 chose " + throwsnap.val().p2throw.throwVal + "<br><br>");
-          database.ref("/throws").remove()
           console.log(ties + " ties")
           console.log(p1wins + " p1wins")
           console.log(p2wins + " p2wins") 
