@@ -1,20 +1,3 @@
-//Pseudocode
-//When you join the game, status updates to "Player 1 joined, enter your name" append that status to battleground
-//1 active player on page
-//Type name in box. When you press play, new name replaces "Player 1" and status updates to say, "Waiting on player 2"
-//When player 2 joins, status to "Player 2 joined, enter your name" - that goes up to a firebase variable
-//When name is added, upate Player 2 heading
-//Both players present, run function for main game - click listeners on player 1 RPS
-//Status updates to "Player 1, choose your throw"
-//When P1 clicks one, get the value of the attr associated with (this) that is clicked and store in p1Throw variable
-//Status updates to "Player one move locked in, player 2, choose your throw"
-//Click listener on P2 icons - when one is clicked, get value of that attr and store in p2Throw variable
-//Compare two throws in RPS evaluator function, passing in two throws and display result in status bar
-//Update wins losses and ties for each player
-//restart the function for event listeners on for p1
-//If someone disconnects from the app, change their name back to P1 or P2 and run the portion of the script if they are p1 or p2 that disconnected
-
-
 //
 //Global Variables
 //
@@ -28,7 +11,7 @@ let p2losses = 0;
 let ties = 0;
 
 //
-//Firebase config\
+//Firebase config
 //
 
 var config = {
@@ -182,14 +165,10 @@ database.ref("/moves").on("value", function(snap) {
   if (snap.val().move === 2) {
     playerTwoThrow(snap.val().move);
   }
-  if (snap.val().move === 3) {
-      console.log("Move is 3, evaluating match")
-    console.log("removed the results node")
-  }
 });
 
 function playerOneThrow() {
-  $(".details").text("Player 1, choose your throw");
+  $(".details").html("<br><p>Player 1 choose your throw");
   $(".p1-hands").on("click", playerOneChooseHand);
 }
 
@@ -208,7 +187,6 @@ function playerTwoThrow() {
 
 function playerTwoChooseHand() {
   $(".p2-hands").off()
-  progressMove(3);
   console.log("Player 2 hand clicked");
   let hand = $(this).attr("data-value");
   console.log("Player 2 chose" + hand);
@@ -254,31 +232,28 @@ database.ref('/results/gameresult').on("child_added",function(resultsnap){
     database.ref("/throws/").once("value").then(function(throwsnap) {
           console.log("Displaying the throws node just once since a child was added to the game results node")
         console.log(throwsnap.val()) 
-        console.log(throwsnap.val()) 
+        console.log(throwsnap.val())
+        database.ref("/moves").child("/move").set(1); //Bring game back to p1throw point   
+        database.ref("/players").once("value").then(function(playersnap){ 
           if(resultsnap.val() === "tie"){
               ties++
+              $(".details").prepend("Tie game! <br>");
+              $(".ties").text(ties + " ")
           } else if (resultsnap.val() === "p1 wins"){
               p1wins++
               p2losses++
+              $(".details").prepend(playersnap.val().playeronename.playerOneName + " wins! <br>");
+              $("#p1-wins").text(p1wins + " ")
+              $("#p2-losses").text(p2losses + " ")
           } else if(resultsnap.val() === "p2 wins"){
               p2wins++
               p1losses++
+              $(".details").prepend(playersnap.val().playertwoname.playerTwoName + "wins! <br>");
+              $("#p2-wins").text(p2wins + " ")
+              $("#p1-losses").text(p1losses + " ")
           }
-          database.ref("/moves").child("/move").set(1); //Bring game back to p1throw point
-          $(".details").prepend("The result was: " + resultsnap.val() + "<br><br>");
-        
-          $(".details").prepend(" Player 1 chose " + throwsnap.val().p1throw.throwVal + " and player 2 chose " + throwsnap.val().p2throw.throwVal + "<br><br>");
-          console.log(ties + " ties")
-          console.log(p1wins + " p1wins")
-          console.log(p2wins + " p2wins") 
-          //Update results on page 
-          database.ref('/results/gameresult').on("value",function(snap){
-            console.log("Updating screen for both because game result has changed")
-            $("#p1-wins").text(p1wins + " ")
-            $("#p2-wins").text(p2wins + " ")
-            $("#p1-losses").text(p1losses + " ")
-            $("#p2-losses").text(p2losses + " ")
-            $(".ties").text(ties + " ")
+                   
+          $(".details").prepend(playersnap.val().playeronename.playerOneName + " chose " + throwsnap.val().p1throw.throwVal + " ... " + playersnap.val().playertwoname.playerTwoName + " chose " + throwsnap.val().p2throw.throwVal + "<br><br>");
         })
     });
     database.ref("/results/gameresult").remove()
