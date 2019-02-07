@@ -84,6 +84,10 @@ h1,h2{
     min-height: 340px;
 }
 
+.details {
+    font-size:25px;
+}
+
 .chat-box{
     font-family: arial;
     font-weight: bold;
