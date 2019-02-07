@@ -248,7 +248,7 @@ database.ref('/results/gameresult').on("child_added",function(resultsnap){
           } else if(resultsnap.val() === "p2 wins"){
               p2wins++
               p1losses++
-              $(".details").prepend(playersnap.val().playertwoname.playerTwoName + "wins! <br>");
+              $(".details").prepend(playersnap.val().playertwoname.playerTwoName + " wins! <br>");
               $("#p2-wins").text(p2wins + " ")
               $("#p1-losses").text(p1losses + " ")
           }
