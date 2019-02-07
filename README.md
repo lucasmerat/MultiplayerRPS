@@ -1,6 +1,9 @@
 # Multiplayer RPS
 
-## A mutliplayer rock/paper/scissors game, powered by Firebase & Javascript
+#### A mutliplayer rock/paper/scissors game, powered by Firebase & Javascript
+
+## Link to deployed app
+https://lucasmerat.github.io/MultiplayerRPS/
 
 ## Install
 
