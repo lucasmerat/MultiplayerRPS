@@ -25,7 +25,7 @@ var config = {
 firebase.initializeApp(config);
 
 var database = firebase.database();
-
+//Sets game data back to original state - triggered by numConections decreasing
 function resetGameData() {
   $("#p1-name").text("Player 1");
   $("#p2-name").text("Player 2");
@@ -67,14 +67,14 @@ connectionsRef.on("value", function(snapshot) {
   console.log(snapshot.val());
   //Update connectedPlayers variable based on number of children in node
   connectedPlayers = snapshot.numChildren();
-  //If we have one person conneted, display that to users and add click listener on start button
+
   if (connectedPlayers === 0) {
-    resetGameData()
+    resetGameData() //When both players log out, reset the game
   }
 
   if (connectedPlayers === 1) {
-    resetGameData(); //For when game is reset to 1 player, data reloads
-    $(".enter-name").slideDown("slow")
+    resetGameData(); 
+    $(".enter-name").slideDown("slow")//Displays enter name field
     $(".details").text("Player 1 has connected... Please enter your name");
     $("#p1-name").css("color","green")
     $("#p2-name").css("color","#333")
@@ -82,6 +82,7 @@ connectionsRef.on("value", function(snapshot) {
   }
 
   if (connectedPlayers === 2) {
+    //Pulls player 1 name for second player
     database
       .ref("/players/playeronename")
       .once("value")
@@ -94,6 +95,11 @@ connectionsRef.on("value", function(snapshot) {
     $("#p2-name").css("color","green")
     $(".add-name").on("click", updatePlayerName);
   }
+  //Resets connections if we have an additional connection than the app can handle
+  if (connectedPlayers === 3) {
+    connectionsRef.remove(); 
+  }
+
 });
 
 function updatePlayerName() {
@@ -107,7 +113,7 @@ function updatePlayerName() {
     $(".enter-name").slideUp("slow")
     $(".details").text("Waiting for player 2...");
   }
-  //If second player connected,
+  //If second player connected,runs script to add second players name to databse
   if (connectedPlayers === 2) {
     playerTwoName = $(".name-input").val();
     myName = $(".name-input").val();
@@ -118,7 +124,7 @@ function updatePlayerName() {
   }
 }
 
-//Function to update P1 and P2 name in database
+//To update P1 and P2 name in database
 function firebasePlayerAdd(name) {
   if (connectedPlayers === 1) {
     database.ref("/players/playeronename").set({
@@ -131,7 +137,7 @@ function firebasePlayerAdd(name) {
   }
 }
 
-//When there is a change in P1 or P2 nodes, update that on HTML -- need to fix this so that it does not auto
+//When there is a change in P1 or P2 nodes, update that on HTML
 database.ref("/players/playeronename").on("value", function(snapshot) {
   $("#p1-name").text(snapshot.val().playerOneName);
 });
@@ -147,7 +153,7 @@ database.ref("/players/playertwoname").on("value", function(snapshot) {
 //
 
 
-//Function to increase move count
+//Function to increase move count as game progresses
 function progressMove(num) {
   database
     .ref("/moves")
@@ -155,15 +161,17 @@ function progressMove(num) {
     .set(num);
 }
 
-//Listener for when move variable changes
+//Listener on  for when move variable changes
 database.ref("/moves").on("value", function(snap) {
   console.log("Move just changed to " + snap.val().move);
+  //When move hits one, hide the enter name filed and initiate player 1 throw sequence
   if (snap.val().move === 1) {
     $(".enter-name").slideUp("slow")
-    playerOneThrow(snap.val().move);
+    playerOneThrow();
   }
+  //When move hits two, initiate player two throw sequence
   if (snap.val().move === 2) {
-    playerTwoThrow(snap.val().move);
+    playerTwoThrow();
   }
 });
 
@@ -173,11 +181,11 @@ function playerOneThrow() {
 }
 
 function playerOneChooseHand() {
-  $(".p1-hands").off()
-  let hand = $(this).attr("data-value");
-  console.log("Player 1 chose" + hand);
+  $(".p1-hands").off() //Remove click listener
+  let hand = $(this).attr("data-value"); //Pull rock/paper/scissors value from data attribute of hand 
+  console.log("Player 1 chose " + hand);
   progressMove(2);
-  database.ref("/throws/p1throw").child("/throwVal").set(hand);
+  database.ref("/throws/p1throw").child("/throwVal").set(hand); //Sets the value of the player 1 throw in firebase
 }
 
 function playerTwoThrow() {
@@ -187,21 +195,21 @@ function playerTwoThrow() {
 
 function playerTwoChooseHand() {
   $(".p2-hands").off()
-  console.log("Player 2 hand clicked");
   let hand = $(this).attr("data-value");
   console.log("Player 2 chose" + hand);
   database.ref("/throws/p2throw").child("/throwVal").set(hand);
-  evaluateMatch();
+  evaluateMatch(); //Calls function after p2 chooses their hand to evaluate the matchup
 }
 
 function evaluateMatch() {
-    database.ref("/throws/")
+    database.ref("/throws/") //Calls throws in firebase to pull value of player 1 and 2 throws
     .once("value")
     .then(function(throwsnap) {
         console.log("Displaying throws node once for match evaluation")
         console.log(throwsnap.val())
             let p1throw = throwsnap.val().p1throw.throwVal;
             let p2throw = throwsnap.val().p2throw.throwVal;
+            //Logic to compare RPS of player 1 and 2, sets outcome in results on Firebase
             if (p1throw === p2throw){
                 database.ref('/results/gameresult').child("/outcome").set("tie")
             } else if(p1throw === "rock"){
@@ -225,16 +233,15 @@ function evaluateMatch() {
         });
     }
 
-//Listens for change in results, triggered by setting outcome and results above
-
+//Listens for addition of result each round, triggered by setting outcome above
 database.ref('/results/gameresult').on("child_added",function(resultsnap){
     console.log("Displaying results node because a child was added", resultsnap.val())
     database.ref("/throws/").once("value").then(function(throwsnap) {
           console.log("Displaying the throws node just once since a child was added to the game results node")
-        console.log(throwsnap.val()) 
         console.log(throwsnap.val())
-        database.ref("/moves").child("/move").set(1); //Bring game back to p1throw point   
-        database.ref("/players").once("value").then(function(playersnap){ 
+        database.ref("/moves").child("/move").set(1); //Bring game back to player 1 throw point   
+        database.ref("/players").once("value").then(function(playersnap){ //Calling database to pull values of player 1 and 2 names
+          //Logic to update number of ties/wins/losses and display results to players
           if(resultsnap.val() === "tie"){
               ties++
               $(".details").prepend("Tie game! <br>");
@@ -251,39 +258,38 @@ database.ref('/results/gameresult').on("child_added",function(resultsnap){
               $(".details").prepend(playersnap.val().playertwoname.playerTwoName + " wins! <br>");
               $("#p2-wins").text(p2wins + " ")
               $("#p1-losses").text(p1losses + " ")
-          }
-                   
+          }      
           $(".details").prepend(playersnap.val().playeronename.playerOneName + " chose " + throwsnap.val().p1throw.throwVal + " ... " + playersnap.val().playertwoname.playerTwoName + " chose " + throwsnap.val().p2throw.throwVal + "<br><br>");
         })
     });
-    database.ref("/results/gameresult").remove()
+    database.ref("/results/gameresult").remove() //Delete result so that child_added event listener functions properly
 })
 
 //
 //CHAT FUNCTIONALITY
 //
 
-
-$("#send-button").on("click", sendMessage)
-
 //Pushes message to message tree with value of what is in chat input with name of user
 function sendMessage(event){
-    event.preventDefault()
+    event.preventDefault()//Stops submit from happening on enter
     let chatBox = $(".chat-box")
-    database.ref("/messages").push(myName + ": " + $("#chat-input").val());
+    database.ref("/messages").push(myName + ": " + $("#chat-input").val()); //Pushes value of what is in chat box and the user's name to messages branch of firebase
     $("#chat-input").val("")
     chatBox.scrollTop(chatBox[0].scrollHeight) //Snaps chat to bottom of box
 }
-
+//Loads what is in messages branch of firebase to the messages box, listening to changes in database value
 database.ref("/messages").on("value",function(messagesSnap){
     let messages = messagesSnap.val()
     let objectKeys = Object.keys(messages);
-    $(".chat-box").empty() //clears chat box before iterating thru list of messages
+    let chatBox = $(".chat-box")
+    $(".chat-box").empty() //clears chat box before iterating thru list of messages 
+    //Appends messages to chat box
     for (let i = 0; i < objectKeys.length; i++) {
         let k = objectKeys[i];
         let theMessage = messages[k]
         $(".chat-box").append("<p>" + theMessage)
     }
-    let chatBox = $(".chat-box")
     chatBox.scrollTop(chatBox[0].scrollHeight) //Snaps chat to bottom of box
 })
+
+$("#send-button").on("click", sendMessage)
