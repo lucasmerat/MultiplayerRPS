@@ -17,6 +17,6 @@ https://lucasmerat.github.io/MultiplayerRPS/
 
 
 ## Built with 
-(https://firebase.google.com/)
-[jQuery] (https://jquery.com/)
-[Homebrew](http://brew.sh/)
+[jQuery](https://jQuery.com/)
+[Firebase](https://firebase.google.com/)
+
