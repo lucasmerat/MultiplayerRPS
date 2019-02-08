@@ -26,6 +26,7 @@ firebase.initializeApp(config);
 
 var database = firebase.database();
 //Sets game data back to original state - triggered by numConections decreasing
+
 function resetGameData() {
   $("#p1-name").text("Player 1");
   $("#p2-name").text("Player 2");
@@ -38,7 +39,10 @@ function resetGameData() {
   database.ref("players/playertwoname/").set({
     name: "Player 2"
   });
-  database.ref("/results/gameresult").remove()
+  database.ref("/results/gameresult").remove();
+  database.ref("/messages").set({
+    first: "Write and message and click send!"
+  });
 }
 
 //
@@ -53,7 +57,6 @@ var connectedRef = database.ref(".info/connected");
 
 //Listener on changes in number of connections
 connectedRef.on("value", function(snap) {
-
   if (snap.val()) {
     // Add user to the connections list.
     var con = connectionsRef.push(true);
@@ -69,15 +72,14 @@ connectionsRef.on("value", function(snapshot) {
   connectedPlayers = snapshot.numChildren();
 
   if (connectedPlayers === 0) {
-    resetGameData() //When both players log out, reset the game
   }
 
   if (connectedPlayers === 1) {
-    resetGameData(); 
-    $(".enter-name").slideDown("slow")//Displays enter name field
+    resetGameData(); //When both players log out, reset the game
+    $(".enter-name").slideDown("slow"); //Displays enter name field
     $(".details").text("Player 1 has connected... Please enter your name");
-    $("#p1-name").css("color","green")
-    $("#p2-name").css("color","#333")
+    $("#p1-name").css("color", "green");
+    $("#p2-name").css("color", "#333");
     $(".add-name").on("click", updatePlayerName);
   }
 
@@ -88,18 +90,13 @@ connectionsRef.on("value", function(snapshot) {
       .once("value")
       .then(function(snap) {
         $("#p1-name").text(snap.val().name);
-        $("#p1-name").css("color","green")
+        $("#p1-name").css("color", "green");
       });
     $(".details").text("Player 2 has connected... Please enter your name");
-    $(".enter-name").slideDown("slow")
-    $("#p2-name").css("color","green")
+    $(".enter-name").slideDown("slow");
+    $("#p2-name").css("color", "green");
     $(".add-name").on("click", updatePlayerName);
   }
-  //Resets connections if we have an additional connection than the app can handle
-  if (connectedPlayers === 3) {
-    connectionsRef.remove(); 
-  }
-
 });
 
 function updatePlayerName() {
@@ -110,7 +107,7 @@ function updatePlayerName() {
     firebasePlayerAdd(playerOneName);
     $(".name-input").val("");
     $(".add-name").off();
-    $(".enter-name").slideUp("slow")
+    $(".enter-name").slideUp("slow");
     $(".details").text("Waiting for player 2...");
   }
   //If second player connected,runs script to add second players name to databse
@@ -147,11 +144,9 @@ database.ref("/players/playertwoname").on("value", function(snapshot) {
   $("#p2-name").text(snapshot.val().playerTwoName);
 });
 
-
 //
 //GAME MECHANICS
 //
-
 
 //Function to increase move count as game progresses
 function progressMove(num) {
@@ -166,7 +161,7 @@ database.ref("/moves").on("value", function(snap) {
   console.log("Move just changed to " + snap.val().move);
   //When move hits one, hide the enter name filed and initiate player 1 throw sequence
   if (snap.val().move === 1) {
-    $(".enter-name").slideUp("slow")
+    $(".enter-name").slideUp("slow");
     playerOneThrow();
   }
   //When move hits two, initiate player two throw sequence
@@ -181,11 +176,14 @@ function playerOneThrow() {
 }
 
 function playerOneChooseHand() {
-  $(".p1-hands").off() //Remove click listener
-  let hand = $(this).attr("data-value"); //Pull rock/paper/scissors value from data attribute of hand 
+  $(".p1-hands").off(); //Remove click listener
+  let hand = $(this).attr("data-value"); //Pull rock/paper/scissors value from data attribute of hand
   console.log("Player 1 chose " + hand);
   progressMove(2);
-  database.ref("/throws/p1throw").child("/throwVal").set(hand); //Sets the value of the player 1 throw in firebase
+  database
+    .ref("/throws/p1throw")
+    .child("/throwVal")
+    .set(hand); //Sets the value of the player 1 throw in firebase
 }
 
 function playerTwoThrow() {
@@ -194,102 +192,163 @@ function playerTwoThrow() {
 }
 
 function playerTwoChooseHand() {
-  $(".p2-hands").off()
+  $(".p2-hands").off();
   let hand = $(this).attr("data-value");
   console.log("Player 2 chose" + hand);
-  database.ref("/throws/p2throw").child("/throwVal").set(hand);
+  database
+    .ref("/throws/p2throw")
+    .child("/throwVal")
+    .set(hand);
   evaluateMatch(); //Calls function after p2 chooses their hand to evaluate the matchup
 }
 
 function evaluateMatch() {
-    database.ref("/throws/") //Calls throws in firebase to pull value of player 1 and 2 throws
+  database
+    .ref("/throws/") //Calls throws in firebase to pull value of player 1 and 2 throws
     .once("value")
     .then(function(throwsnap) {
-        console.log("Displaying throws node once for match evaluation")
-        console.log(throwsnap.val())
-            let p1throw = throwsnap.val().p1throw.throwVal;
-            let p2throw = throwsnap.val().p2throw.throwVal;
-            //Logic to compare RPS of player 1 and 2, sets outcome in results on Firebase
-            if (p1throw === p2throw){
-                database.ref('/results/gameresult').child("/outcome").set("tie")
-            } else if(p1throw === "rock"){
-                if(p2throw === "paper"){
-                database.ref('/results/gameresult').child("/outcome").set("p2 wins")
-                } else if(p2throw === "scissors")
-                database.ref('/results/gameresult').child("/outcome").set("p1 wins")
-            } else if (p1throw === "paper"){
-                if(p2throw === "rock"){
-                database.ref('/results/gameresult').child("/outcome").set("p1 wins")
-                } else if (p2throw === "scissors"){
-                database.ref('/results/gameresult').child("/outcome").set("p2 wins")
-                }
-            } else if(p1throw === "scissors"){
-                if(p2throw === "paper"){
-                database.ref('/results/gameresult').child("/outcome").set("p1 wins")
-                } else if (p2throw === "rock"){
-                 database.ref('/results/gameresult').child("/outcome").set("p2 wins")
-                }
-            }
-        });
-    }
+      console.log("Displaying throws node once for match evaluation");
+      console.log(throwsnap.val());
+      let p1throw = throwsnap.val().p1throw.throwVal;
+      let p2throw = throwsnap.val().p2throw.throwVal;
+      //Logic to compare RPS of player 1 and 2, sets outcome in results on Firebase
+      if (p1throw === p2throw) {
+        database
+          .ref("/results/gameresult")
+          .child("/outcome")
+          .set("tie");
+      } else if (p1throw === "rock") {
+        if (p2throw === "paper") {
+          database
+            .ref("/results/gameresult")
+            .child("/outcome")
+            .set("p2 wins");
+        } else if (p2throw === "scissors")
+          database
+            .ref("/results/gameresult")
+            .child("/outcome")
+            .set("p1 wins");
+      } else if (p1throw === "paper") {
+        if (p2throw === "rock") {
+          database
+            .ref("/results/gameresult")
+            .child("/outcome")
+            .set("p1 wins");
+        } else if (p2throw === "scissors") {
+          database
+            .ref("/results/gameresult")
+            .child("/outcome")
+            .set("p2 wins");
+        }
+      } else if (p1throw === "scissors") {
+        if (p2throw === "paper") {
+          database
+            .ref("/results/gameresult")
+            .child("/outcome")
+            .set("p1 wins");
+        } else if (p2throw === "rock") {
+          database
+            .ref("/results/gameresult")
+            .child("/outcome")
+            .set("p2 wins");
+        }
+      }
+    });
+}
 
 //Listens for addition of result each round, triggered by setting outcome above
-database.ref('/results/gameresult').on("child_added",function(resultsnap){
-    console.log("Displaying results node because a child was added", resultsnap.val())
-    database.ref("/throws/").once("value").then(function(throwsnap) {
-          console.log("Displaying the throws node just once since a child was added to the game results node")
-        console.log(throwsnap.val())
-        database.ref("/moves").child("/move").set(1); //Bring game back to player 1 throw point   
-        database.ref("/players").once("value").then(function(playersnap){ //Calling database to pull values of player 1 and 2 names
+database.ref("/results/gameresult").on("child_added", function(resultsnap) {
+  console.log(
+    "Displaying results node because a child was added",
+    resultsnap.val()
+  );
+  database
+    .ref("/throws/")
+    .once("value")
+    .then(function(throwsnap) {
+      console.log(
+        "Displaying the throws node just once since a child was added to the game results node"
+      );
+      console.log(throwsnap.val());
+      database
+        .ref("/moves")
+        .child("/move")
+        .set(1); //Bring game back to player 1 throw point
+      database
+        .ref("/players")
+        .once("value")
+        .then(function(playersnap) {
+          //Calling database to pull values of player 1 and 2 names
           //Logic to update number of ties/wins/losses and display results to players
-          if(resultsnap.val() === "tie"){
-              ties++
-              $(".details").prepend("Tie game! <br>");
-              $(".ties").text(ties + " ")
-          } else if (resultsnap.val() === "p1 wins"){
-              p1wins++
-              p2losses++
-              $(".details").prepend(playersnap.val().playeronename.playerOneName + " wins! <br>");
-              $("#p1-wins").text(p1wins + " ")
-              $("#p2-losses").text(p2losses + " ")
-          } else if(resultsnap.val() === "p2 wins"){
-              p2wins++
-              p1losses++
-              $(".details").prepend(playersnap.val().playertwoname.playerTwoName + " wins! <br>");
-              $("#p2-wins").text(p2wins + " ")
-              $("#p1-losses").text(p1losses + " ")
-          }      
-          $(".details").prepend(playersnap.val().playeronename.playerOneName + " chose " + throwsnap.val().p1throw.throwVal + " ... " + playersnap.val().playertwoname.playerTwoName + " chose " + throwsnap.val().p2throw.throwVal + "<br><br>");
-        })
+          if (resultsnap.val() === "tie") {
+            ties++;
+            $(".details").prepend("Tie game! <br>");
+            $(".ties").text(ties + " ");
+          } else if (resultsnap.val() === "p1 wins") {
+            p1wins++;
+            p2losses++;
+            $(".details").prepend(
+              playersnap.val().playeronename.playerOneName + " wins! <br>"
+            );
+            $("#p1-wins").text(p1wins + " ");
+            $("#p2-losses").text(p2losses + " ");
+          } else if (resultsnap.val() === "p2 wins") {
+            p2wins++;
+            p1losses++;
+            $(".details").prepend(
+              playersnap.val().playertwoname.playerTwoName + " wins! <br>"
+            );
+            $("#p2-wins").text(p2wins + " ");
+            $("#p1-losses").text(p1losses + " ");
+          }
+          $(".details").prepend(
+            playersnap.val().playeronename.playerOneName +
+              " chose " +
+              throwsnap.val().p1throw.throwVal +
+              " ... " +
+              playersnap.val().playertwoname.playerTwoName +
+              " chose " +
+              throwsnap.val().p2throw.throwVal +
+              "<br><br>"
+          );
+        });
     });
-    database.ref("/results/gameresult").remove() //Delete result so that child_added event listener functions properly
-})
+  database.ref("/results/gameresult").remove(); //Delete result so that child_added event listener functions properly
+});
 
 //
 //CHAT FUNCTIONALITY
 //
 
 //Pushes message to message tree with value of what is in chat input with name of user
-function sendMessage(event){
-    event.preventDefault()//Stops submit from happening on enter
-    let chatBox = $(".chat-box")
-    database.ref("/messages").push(myName + ": " + $("#chat-input").val()); //Pushes value of what is in chat box and the user's name to messages branch of firebase
-    $("#chat-input").val("")
-    chatBox.scrollTop(chatBox[0].scrollHeight) //Snaps chat to bottom of box
+function sendMessage(event) {
+  event.preventDefault(); //Stops submit from happening on enter
+  setTimeout(function() {
+    database
+      .ref("/messages")
+      .child("first")
+      .remove();
+  }, 1000);
+  let chatBox = $(".chat-box");
+  database.ref("/messages").push(myName + ": " + $("#chat-input").val()); //Pushes value of what is in chat box and the user's name to messages branch of firebase
+  $("#chat-input").val("");
+  chatBox.scrollTop(chatBox[0].scrollHeight); //Snaps chat to bottom of box
 }
 //Loads what is in messages branch of firebase to the messages box, listening to changes in database value
-database.ref("/messages").on("value",function(messagesSnap){
-    let messages = messagesSnap.val()
-    let objectKeys = Object.keys(messages);
-    let chatBox = $(".chat-box")
-    $(".chat-box").empty() //clears chat box before iterating thru list of messages 
-    //Appends messages to chat box
-    for (let i = 0; i < objectKeys.length; i++) {
-        let k = objectKeys[i];
-        let theMessage = messages[k]
-        $(".chat-box").append("<p>" + theMessage)
-    }
-    chatBox.scrollTop(chatBox[0].scrollHeight) //Snaps chat to bottom of box
-})
 
-$("#send-button").on("click", sendMessage)
+database.ref("/messages").on("value", function(messagesSnap) {
+  let messages = messagesSnap.val();
+  console.log(Object.keys(messages));
+  let objectKeys = Object.keys(messages);
+  let chatBox = $(".chat-box");
+  $(".chat-box").empty(); //clears chat box before iterating thru list of messages
+  //Appends messages to chat box
+  for (let i = 0; i < objectKeys.length; i++) {
+    let k = objectKeys[i];
+    let theMessage = messages[k];
+    $(".chat-box").append("<p>" + theMessage);
+  }
+  chatBox.scrollTop(chatBox[0].scrollHeight); //Snaps chat to bottom of box
+});
+
+$("#send-button").on("click", sendMessage);
