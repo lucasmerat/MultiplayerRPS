@@ -41,7 +41,7 @@ function resetGameData() {
   });
   database.ref("/results/gameresult").remove();
   database.ref("/messages").set({
-    first: "Write and message and click send!"
+    first: "Write a message and click send!"
   });
 }
 
